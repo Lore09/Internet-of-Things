@@ -1,24 +1,35 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-
-#define TEST_CLIENT false  // Set to true to use the test client, false to use the real client
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 // Replace with your network credentials
-const char* ssid = "wifi-name";          // WiFi SSID
-const char* ssid_password = "wifi-pass";     // WiFi password
+const char* ssid = "VodafoneArmata Edition";          // WiFi SSID
+const char* ssid_password = "MassoneTerrone666!";     // WiFi password
 
 // MQTT settings
-const char* mqtt_server = "your.domain";              // MQTT server 
+const char* mqtt_server = "rebus.ninja";              // MQTT server 
 const int mqtt_port = 1883;                           // MQTT port     
-const char* mqtt_user = "your-user";                      // MQTT username
-const char* mqtt_password = "your-password";             // MQTT password
+const char* mqtt_user = "test";                      // MQTT username
+const char* mqtt_password = "test-user";             // MQTT password
 
+const char* client_id = "esp8266-lore";                  // Device name
+const char* topic = "devices/esp8266-lore";                 // Topic to subscribe to
 
+const int heartbeat_interval = 30000; // 30 seconds
+
+// WiFiClient setup
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
-char msg[50];
+String msg;
 int value = 0;
+
+// NTP client setup
+const long utcOffsetInSeconds = 3600;
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 void setup_wifi() {
   delay(10);
@@ -52,18 +63,20 @@ void callback(char* topic, byte* message, unsigned int length) {
   Serial.println();
 
   // Example of handling a message received on a specific topic
-  if (String(topic) == "esp8266/output") {
+  if (String(topic) == topic) {
     
-    if(messageTemp == "Changing output to off"){
+    if(messageTemp == "stop_alarm"){
       Serial.println("off");
       digitalWrite(LED_BUILTIN, HIGH);
-      // Do something
+      
+      // TODO: Add your code here to stop the alarm
     }
     
-    else if(messageTemp == "on"){
-      Serial.println("Changing output to on");
+    else if(messageTemp == "trigger_alarm"){
+
       digitalWrite(LED_BUILTIN, LOW);
-      // Do something else
+      
+      // TODO: Add your code here to trigger the alarm
     }
 
     else{
@@ -77,10 +90,11 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP8266TestClient", mqtt_user, mqtt_password)) {
+    if (client.connect(client_id, mqtt_user, mqtt_password)) {
       Serial.println("connected");
-      // Subscribe to a topic
-      client.subscribe("esp8266/output");
+
+      // Subscribe to the required topic
+      client.subscribe(topic);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -94,6 +108,9 @@ void reconnect() {
 void setup() {
   Serial.begin(9600);
   setup_wifi();
+
+  timeClient.begin();
+
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 
@@ -108,12 +125,14 @@ void loop() {
   client.loop();
 
   long now = millis();
-  if (TEST_CLIENT && (now - lastMsg > 2000)) {
-    lastMsg = now;
-    ++value;
-    snprintf (msg, 50, "hello world #%ld", value);
+  if ((now - lastMsg > heartbeat_interval)) {
+    
+    timeClient.update();
+
+    msg = "{ \"name\": \"" + String(client_id) + "\", \"time\": \"" + timeClient.getFormattedTime() + "\" }";
+
     Serial.print("Publish message: ");
     Serial.println(msg);
-    client.publish("esp8266/test", msg);
+    client.publish("esp8266/test", msg.c_str());
   }
 }
