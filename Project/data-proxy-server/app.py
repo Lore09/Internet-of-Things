@@ -1,10 +1,7 @@
 from flask import Flask
-from src.api import api as api_blueprint
 from src.mqtt import MQTTClient, MQTTConfig
 
 app = Flask(__name__)
-
-app.register_blueprint(api_blueprint, url_prefix='')
 
 
 broker = 'rebus.ninja'
@@ -14,9 +11,13 @@ client_id = 'data-proxy-server'
 username = 'test'
 password = 'test-user'
 
-mqtt_config = MQTTConfig(broker, port, client_id, username, password)
-mqtt_client = MQTTClient(mqtt_config)
+registered_devices = []
 
+mqtt_config = MQTTConfig(broker, port, client_id, username, password)
+mqtt_client = MQTTClient(mqtt_config, registered_devices)
+
+from src.api import api as api_blueprint
+app.register_blueprint(api_blueprint, url_prefix='')
 
 print('Starting MQTT client...')
 mqtt_client.run()
