@@ -127,12 +127,12 @@ void loop() {
   long now = millis();
   if ((now - lastMsg > heartbeat_interval)) {
     
+    lastMsg = now;
     timeClient.update();
 
     msg = "{ \"name\": \"" + String(client_id) + "\", \"time\": \"" + timeClient.getFormattedTime() + "\" }";
 
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    client.publish("esp8266/test", msg.c_str());
+    Serial.println("Publish message: " + msg + " to topic: devices/heartbeat");
+    client.publish("devices/heartbeat", msg.c_str());
   }
 }
