@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-4">
+
+    {% for x in cards %}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    {{ x.title}}
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('api.handle_form') }}" method="POST">
+                        <div class="form-group">
+                            <label for= {{ x.label }} > {{ x.label }}</label>
+                            <input type="text" class="form-control" id={{ x.label }} name={{ x.label }}>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+</div>
+{% endblock %}
