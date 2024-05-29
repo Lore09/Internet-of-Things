@@ -35,6 +35,12 @@ class Config(object):
     MQTT_PASSWORD       = os.getenv('MQTT_PASSWORD', '')
     CLIENT_ID           = os.getenv('CLIENT_ID', 'data-proxy-server')
 
+    # InfluxDB Config
+    INFLUXDB_ADDRESS    = os.getenv('INFLUXDB_ADDRESS', 'localhost')
+    INFLUXDB_TOKEN      = os.getenv('INFLUXDB_TOKEN', '')
+    INFLUXDB_ORG        = os.getenv('INFLUXDB_ORG', '')
+    INFLUXDB_BUCKET     = os.getenv('INFLUXDB_BUCKET', '')
+
     # try to set up a Relational DBMS
     if DB_ENGINE and DB_NAME and DB_USERNAME:
 

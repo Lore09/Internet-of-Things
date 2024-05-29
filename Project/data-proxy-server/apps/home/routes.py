@@ -133,3 +133,9 @@ def stop_alarm():
     mqtt_client.publish('stop_alarm', f'devices/{data[0]}')
 
     return redirect(url_for('home_blueprint.devices'))
+
+@blueprint.route('/api/sensor_data', methods=['POST'])
+def get_sensor_data():
+    # TODO insert data into influxdb
+
+    return
