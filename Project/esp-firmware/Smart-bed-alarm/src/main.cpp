@@ -4,14 +4,14 @@
 #include <WiFiUdp.h>
 
 // Replace with your network credentials
-const char* ssid = "wifi-name";          // WiFi SSID
-const char* ssid_password = "wifi-pass";     // WiFi password
+const char* ssid = "Chungo-wifi";          // WiFi SSID
+const char* ssid_password = "ChungoGrasso";     // WiFi password
 
 // MQTT settings
-const char* mqtt_server = "your.domain";              // MQTT server 
+const char* mqtt_server = "rebus.ninja";              // MQTT server 
 const int mqtt_port = 1883;                           // MQTT port     
-const char* mqtt_user = "your-user";                      // MQTT username
-const char* mqtt_password = "your-password";             // MQTT password
+const char* mqtt_user = "test";                      // MQTT username
+const char* mqtt_password = "test-user";             // MQTT password
 const char* client_id = "esp8266-lore";                  // Device name
 const char* topic = "devices/esp8266-lore"; 
 
