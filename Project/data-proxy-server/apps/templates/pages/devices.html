@@ -4,14 +4,11 @@
 
 {% block content %}
 <div class="pc-container">
-<div class="row mt-4">
-
-    <div class="col-md-12">
-        <h1>Dashboard</h1>
-    </div>
+<div class="pc-content">
+<div class="row">
 
     {% for x in cards %}
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
                     {{ x.name }}
@@ -44,6 +41,7 @@
         </div>
     {% endfor %}
 
+</div>
 </div>
 </div>
 {% endblock %}
