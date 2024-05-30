@@ -142,9 +142,15 @@ def get_sensor_data():
         with influx.client.write_api() as write_api:
 
             print(request.form.to_dict())
+
+            client_id = request.form.get('client_id')
+            sensor_data = request.form.get('data')
+
+            payload = f'pressure_sensor,client_id={client_id} sensor_data={sensor_data}'
+
             write_api.write(influx.bucket, 
                             influx.org, 
-                            record=request.form.to_dict())
+                            record=payload)
 
         return make_response('OK', 200)
     except Exception as e:
