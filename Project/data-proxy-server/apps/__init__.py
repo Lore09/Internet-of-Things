@@ -22,7 +22,7 @@ mqtt_client = MQTTClient()
 registered_devices = []
 
 influxdb_c = None
-influx_write_api = None
+write_api = None
 
 def register_extensions(app):
     db.init_app(app)
@@ -90,7 +90,7 @@ def configure_influxdb(app):
     print('> INFLUXDB - ' + influxdb_c.health().to_str())
 
     # get the write api
-    influx_write_api = influxdb_c.write_api()
+    write_api = influxdb_c.write_api()
 
 
 def create_app(config):
