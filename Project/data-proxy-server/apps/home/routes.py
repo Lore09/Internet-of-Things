@@ -2,7 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-from apps import registered_devices, mqtt_client, config, write_api
+from apps import registered_devices, mqtt_client, config, influxdb_c
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required
@@ -138,9 +138,12 @@ def stop_alarm():
 def get_sensor_data():
     
     try:
-        print(request.form.to_dict())
-        write_api.write(bucket=config.get("INFLUXDB_BUCKET"), org=config.get("INFLUXDB_ORG"), 
-                        record=request.form.to_dict())
+
+        with influxdb_c.write_api() as write_api:
+
+            print(request.form.to_dict())
+            write_api.write(bucket=config.get("INFLUXDB_BUCKET"), org=config.get("INFLUXDB_ORG"), 
+                            record=request.form.to_dict())
 
         return make_response('OK', 200)
     except Exception as e:

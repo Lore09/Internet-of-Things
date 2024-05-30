@@ -11,7 +11,6 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from apps.custom.mqtt import MQTTClient, MQTTConfig
 from influxdb_client import InfluxDBClient
-from influxdb_client.client.write_api import SYNCHRONOUS
 
 from flask_cdn import CDN
 
@@ -23,7 +22,6 @@ mqtt_client = MQTTClient()
 registered_devices = []
 
 influxdb_c = None
-write_api = None
 
 def register_extensions(app):
     db.init_app(app)
@@ -89,8 +87,6 @@ def configure_influxdb(app):
 
     influxdb_c = InfluxDBClient(url=url, token=token, org=org)
     print('> INFLUXDB - ' + influxdb_c.health().to_str())
-
-    write_api = influxdb_c.write_api(write_options=SYNCHRONOUS)
 
 def create_app(config):
 
