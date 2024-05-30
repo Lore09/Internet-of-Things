@@ -2,6 +2,7 @@
 #include <PubSubClient.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <ESP8266HTTPClient.h>
 
 // Replace with your network credentials
 const char* ssid = "Chungo-wifi";          // WiFi SSID
@@ -12,8 +13,13 @@ const char* mqtt_server = "rebus.ninja";              // MQTT server
 const int mqtt_port = 1883;                           // MQTT port     
 const char* mqtt_user = "test";                      // MQTT username
 const char* mqtt_password = "test-user";             // MQTT password
-const char* client_id = "esp8266-lore";                  // Device name
 const char* topic = "devices/esp8266-lore"; 
+
+// Sensor settings
+const char* client_id = "esp8266-lore";                  // Device name
+const char* sensor_endpoint = "http://rebus.ninja:5000/api/sensor_data";
+int samplinge_rate = 5; // 5 seconds
+const int SENSOR_PIN = A0;
 
 
 const int heartbeat_interval = 30000; // 30 seconds
@@ -21,15 +27,19 @@ const int heartbeat_interval = 30000; // 30 seconds
 // WiFiClient setup
 WiFiClient espClient;
 PubSubClient client(espClient);
-long lastMsg = 0;
+long lastHeartbeat = 0;
+long lastSample = 0;
+long now = 0;
 String msg;
-int value = 0;
 
 // NTP client setup
 const long utcOffsetInSeconds = 3600;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+// HttpClient
+HTTPClient http;
 
 void setup_wifi() {
   delay(10);
@@ -70,18 +80,32 @@ void callback(char* topic, byte* message, unsigned int length) {
       digitalWrite(LED_BUILTIN, HIGH);
       
       // TODO: Add your code here to stop the alarm
+      return;
     }
     
-    else if(messageTemp == "trigger_alarm"){
+    if(messageTemp.indexOf("trigger_alarm") >= 0){
 
       digitalWrite(LED_BUILTIN, LOW);
       
       // TODO: Add your code here to trigger the alarm
+      return;
     }
 
-    else{
-      Serial.println("Unknown message");
+    if(messageTemp.indexOf("sampling_rate") >= 0){
+
+      // split by space
+      int index = messageTemp.indexOf(" ");
+      int rate = messageTemp.substring(index + 1).toInt();
+
+      if(rate > 0){
+        samplinge_rate = rate;
+        Serial.println("New sampling rate: " + String(samplinge_rate) + " seconds");
+      }
+
+      return;
     }
+
+    Serial.println("Unknown message");
   }
 }
 
@@ -114,7 +138,10 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 
+  http.begin(espClient, sensor_endpoint);
+
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(SENSOR_PIN, INPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 }
 
@@ -124,15 +151,29 @@ void loop() {
   }
   client.loop();
 
-  long now = millis();
-  if ((now - lastMsg > heartbeat_interval)) {
+  now = millis();
+  if ((now - lastHeartbeat > heartbeat_interval)) {
     
-    lastMsg = now;
+    lastHeartbeat = now;
     timeClient.update();
 
     msg = "{ \"name\": \"" + String(client_id) + "\", \"time\": \"" + timeClient.getFormattedTime() + "\" }";
 
     Serial.println("Publish message: " + msg + " to topic: devices/heartbeat");
     client.publish("devices/heartbeat", msg.c_str());
+  }
+
+  if ((now - lastSample > samplinge_rate * 1000)) {
+    
+    lastSample = now;
+
+    // read sensor data
+    int data = analogRead(SENSOR_PIN);
+
+    String content = "client_id=" + String(client_id) + "&data=" + String(data);
+    Serial.println(content);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    http.POST(content);
+    
   }
 }
