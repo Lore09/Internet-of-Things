@@ -4,8 +4,6 @@ echo 'Building python container'
 docker build -t unibo-iot/python-data-proxy-server .
 
 echo 'Container built'
-echo 'Possible environment variables:'
-cat .env.template
-
 echo''
-echo 'To run docker container run: docker run -d unibo-iot/python-data-proxy-server'
+echo 'Import the container in k3s with the following command:'
+echo 'docker save unibo-iot/python-data-proxy-server:latest | sudo k3s ctr images import -'
