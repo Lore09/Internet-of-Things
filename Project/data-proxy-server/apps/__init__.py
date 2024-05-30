@@ -11,8 +11,6 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from apps.custom.mqtt import MQTTClient, MQTTConfig
 from apps.custom.influx import Influx
-from influxdb_client import InfluxDBClient
-
 from flask_cdn import CDN
 
 db = SQLAlchemy()
@@ -85,8 +83,9 @@ def configure_influxdb(app):
     url = app.config.get('INFLUXDB_ADDRESS')
     token = app.config.get('INFLUXDB_TOKEN')
     org = app.config.get('INFLUXDB_ORG')
+    bucket = app.config.get('INFLUXDB_BUCKET')
 
-    influx.set_influx_client(InfluxDBClient(url=url, token=token, org=org))
+    influx.set_influx_client(url=url, token=token, org=org, bucket=bucket)
 
     print('> INFLUXDB - ' + influx.client.health().to_str())
 
