@@ -138,4 +138,5 @@ def stop_alarm():
 def get_sensor_data():
     # TODO insert data into influxdb
 
+    print(request.get_json())
     return
