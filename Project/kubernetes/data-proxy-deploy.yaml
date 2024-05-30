@@ -13,15 +13,24 @@ data:
     # MQTT settings
     MQTT_BROKER_ADDRESS=your-mqtt-broker.com
     MQTT_BROKER_PORT=1883
-    MQTT_USERNAME=your-mqtt-user
-    MQTT_PASSWORD=your-mqtt-pass
     CLIENT_ID=data-proxy-server
 
     # InfluxDB settings
     INFLUXDB_ADDRESS=your-influxdb-server.com
-    INFLUXDB_TOKEN=your-influxdb-token
     INFLUXDB_ORG=your-influxdb-org
     INFLUXDB_BUCKET=your-influxdb-bucket
+---
+# secret for MQTT credentials and InfluxDB token
+apiVersion: v1
+kind: Secret
+metadata:
+  name: data-proxy-secret
+  namespace: iot
+type: Opaque
+data:
+  mqtt-username: your-mqtt-user
+  mqtt-password: your-mqtt-pass
+  influxdb-token: your-influxdb-token
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -46,6 +55,22 @@ spec:
         volumeMounts:
         - name: data-proxy-config
           mountPath: /app
+        env:
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: mqtt-username
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: mqtt-password
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: influxdb-token
       volumes:
       - name: data-proxy-config
         configMap:
