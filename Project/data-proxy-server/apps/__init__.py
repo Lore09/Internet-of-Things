@@ -10,6 +10,7 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from apps.custom.mqtt import MQTTClient, MQTTConfig
+from apps.custom.influx import Influx
 from influxdb_client import InfluxDBClient
 
 from flask_cdn import CDN
@@ -21,7 +22,7 @@ cdn = CDN()
 mqtt_client = MQTTClient()
 registered_devices = []
 
-influxdb_c = None
+influx = Influx()
 
 def register_extensions(app):
     db.init_app(app)
@@ -85,8 +86,9 @@ def configure_influxdb(app):
     token = app.config.get('INFLUXDB_TOKEN')
     org = app.config.get('INFLUXDB_ORG')
 
-    influxdb_c = InfluxDBClient(url=url, token=token, org=org)
-    print('> INFLUXDB - ' + influxdb_c.health().to_str())
+    influx.set_influx_client(InfluxDBClient(url=url, token=token, org=org))
+
+    print('> INFLUXDB - ' + influx.client.health().to_str())
 
 def create_app(config):
 
