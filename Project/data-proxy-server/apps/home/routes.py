@@ -2,9 +2,9 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-from apps import registered_devices, mqtt_client
+from apps import registered_devices, mqtt_client, influx_write_api, config
 from apps.home import blueprint
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 
@@ -136,7 +136,12 @@ def stop_alarm():
 
 @blueprint.route('/api/sensor_data', methods=['POST'])
 def get_sensor_data():
-    # TODO insert data into influxdb
+    
+    try:
+        print(request.form.to_dict())
+        influx_write_api.write_data(config.get("INFLUXDB_BUCKET"), config.get("INFLUXDB_ORG"), request.form.to_dict())
 
-    print(request.get_json())
-    return
+        return make_response('OK', 200)
+    except Exception as e:
+        print(e)
+        return make_response('Error', 500)
