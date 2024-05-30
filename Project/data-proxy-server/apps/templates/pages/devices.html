@@ -1,0 +1,47 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Devices {% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+<div class="pc-content">
+<div class="row">
+
+    {% for x in cards %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    {{ x.name }}
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('home_blueprint.handle_form') }}" method="POST">
+                        <div class="input-group mb-3">
+                            <label for={{ x.name }} > Sampling rate</label>
+                            <input type="text" class="form-control" id={{ x.name }} name={{ x.name }} placeholder= {{ x.sampling_rate }}>
+                            
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary">Update</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <form action="{{ url_for('home_blueprint.trigger_alarm') }}" method="POST">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" name="{{ x.name }}" value="{{ x.name }}">Trigger alarm</button>
+                        </div>
+                    </form>
+
+                    <form action="{{ url_for('home_blueprint.stop_alarm') }}" method="POST">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" name="{{ x.name }}" value="{{ x.name }}">Stop alarm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+</div>
+</div>
+</div>
+{% endblock %}

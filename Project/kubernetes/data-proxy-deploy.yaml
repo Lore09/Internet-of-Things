@@ -1,0 +1,84 @@
+apiVersion: v1
+data:
+  CLIENT_ID: data-proxy-server
+  DEBUG: "False"
+  FLASK_APP: run.py
+  FLASK_ENV: production
+  INFLUXDB_ADDRESS: "your-influxdb-address"
+  INFLUXDB_BUCKET: your-bucket
+  INFLUXDB_ORG: your-org
+  MQTT_BROKER_ADDRESS: rebus.ninja
+  MQTT_BROKER_PORT: "1883"
+kind: ConfigMap
+metadata:
+  name: data-proxy-config
+  namespace: iot
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: data-proxy-secret
+  namespace: iot
+type: Opaque
+data:
+  mqtt-username: your-user-base64
+  mqtt-password: your-password-base64
+  influxdb-token: your-influxdb-token-base64
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-proxy-server
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-proxy-server
+  template:
+    metadata:
+      labels:
+        app: data-proxy-server
+    spec:
+      containers:
+      - name: data-proxy-server
+        image: docker.io/unibo-iot/python-data-proxy-server:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        envFrom:
+          - configMapRef:
+              name: data-proxy-config
+        env:
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: mqtt-username
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: mqtt-password
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: influxdb-token
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-proxy-service
+  namespace: iot
+  annotations:
+    metallb.universe.tf/allow-shared-ip: iot
+    metallb.universe.tf/ip-allocated-from-pool: first-pool
+spec:
+  selector:
+    app: data-proxy-server
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: LoadBalancer
