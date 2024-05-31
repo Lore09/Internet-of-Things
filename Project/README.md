@@ -13,10 +13,10 @@
 # TODO List
 - [ ] Esp firmware
 - [ ] Data proxy api server
-- [ ] Data proxy mqtt connection
-- [ ] Data proxy http/coap data acquisition
+- [x] Data proxy mqtt connection
+- [x] Data proxy http/coap data acquisition
 - [ ] Web interface
-- [ ] Install & configure InfluxDB
-- [ ] Install Grafana & crate dashboard
+- [x] Install & configure InfluxDB
+- [x] Install Grafana & crate dashboard
 - [ ] Data analysis and prediction
 - [ ] Telegram bot
