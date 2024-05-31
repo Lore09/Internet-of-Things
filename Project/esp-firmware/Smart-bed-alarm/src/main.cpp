@@ -4,6 +4,13 @@
 #include <WiFiUdp.h>
 #include <ESP8266HTTPClient.h>
 
+#include "AudioFileSourcePROGMEM.h"
+#include "AudioGeneratorMP3.h"
+#include "AudioOutputI2SNoDAC.h"
+#include "AudioFileSourceBuffer.h"
+
+#include "battle.h"
+
 // Replace with your network credentials
 const char* ssid = "Chungo-wifi";          // WiFi SSID
 const char* ssid_password = "ChungoGrasso";     // WiFi password
@@ -14,6 +21,7 @@ const int mqtt_port = 1883;                           // MQTT port
 const char* mqtt_user = "test";                      // MQTT username
 const char* mqtt_password = "test-user";             // MQTT password
 const char* topic = "devices/esp8266-lore"; 
+const int heartbeat_interval = 30000; // 30 seconds
 
 // Sensor settings
 const char* client_id = "esp8266-lore";                  // Device name
@@ -22,7 +30,11 @@ int samplinge_rate = 5; // 5 seconds
 const int SENSOR_PIN = A0;
 
 
-const int heartbeat_interval = 30000; // 30 seconds
+// Audio client setup
+AudioGeneratorMP3 *player;
+AudioFileSourcePROGMEM *file;
+AudioOutputI2SNoDAC *out;
+AudioFileSourceBuffer *buff;
 
 // WiFiClient setup
 WiFiClient espClient;
@@ -76,18 +88,21 @@ void callback(char* topic, byte* message, unsigned int length) {
   if (String(topic) == topic) {
     
     if(messageTemp == "stop_alarm"){
-      Serial.println("off");
-      digitalWrite(LED_BUILTIN, HIGH);
+
+      Serial.println("Alarm off");
+      player->stop();
       
-      // TODO: Add your code here to stop the alarm
       return;
     }
     
     if(messageTemp.indexOf("trigger_alarm") >= 0){
 
-      digitalWrite(LED_BUILTIN, LOW);
-      
-      // TODO: Add your code here to trigger the alarm
+      // TODO change file to your audio file
+      Serial.println("Alarm on");
+      file = new AudioFileSourcePROGMEM( battle_team_plasma_mp3, sizeof(battle_team_plasma_mp3) );
+      buff = new AudioFileSourceBuffer(file, 2048);
+      player->begin(buff, out);
+
       return;
     }
 
@@ -129,6 +144,15 @@ void reconnect() {
   }
 }
 
+void setupAudio(){
+
+  audioLogger = &Serial;
+  out = new AudioOutputI2SNoDAC();
+  
+  player = new AudioGeneratorMP3();
+
+}
+
 void setup() {
   Serial.begin(9600);
   setup_wifi();
@@ -139,6 +163,8 @@ void setup() {
   client.setCallback(callback);
 
   http.begin(espClient, sensor_endpoint);
+
+  setupAudio();
 
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(SENSOR_PIN, INPUT);
@@ -176,4 +202,18 @@ void loop() {
     http.POST(content);
     
   }
+
+  if (player->isRunning()) {
+
+    if (!player->loop()){
+      player->stop();
+      delay(10);
+      file = new AudioFileSourcePROGMEM( battle_team_plasma_mp3, sizeof(battle_team_plasma_mp3) );
+      buff = new AudioFileSourceBuffer(file, 2048);
+      player->begin(buff, out);
+    }
+      
+  }
+
+  delay(1);
 }
