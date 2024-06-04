@@ -1,0 +1,7 @@
+devices:
+  - device_id : "esp8266-lore"
+    alarms:
+      - time: "07:00"
+        days: [1, 2, 3, 4, 5]
+      - time: "15:00"
+        date: "2024-06-05"
