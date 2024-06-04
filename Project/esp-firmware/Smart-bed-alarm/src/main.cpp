@@ -207,7 +207,6 @@ void loop() {
 
     if (!player->loop()){
       player->stop();
-      delay(10);
       file = new AudioFileSourcePROGMEM( battle_team_plasma_mp3, sizeof(battle_team_plasma_mp3) );
       buff = new AudioFileSourceBuffer(file, 2048);
       player->begin(buff, out);
@@ -215,5 +214,4 @@ void loop() {
       
   }
 
-  delay(1);
 }
