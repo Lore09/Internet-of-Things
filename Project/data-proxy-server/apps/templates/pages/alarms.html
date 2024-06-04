@@ -1,0 +1,42 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Alarms {% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+<div class="pc-content">
+<div class="row">
+
+    {% for x in cards %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    {{ x.device_id }}
+                </div>
+
+                {% for alarm in x.alarms %}
+                    <div class="row-cols-auto align-items-center">
+                        
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <div class="row align-items-start">
+                                  <div class="col">
+                                    <h5 class="mb-0">{{ alarm.time }}</h5>
+                                  </div>
+                                  <div class="col-auto">
+                                    <h4 class="mb-0">{{ alarm.date }}</h4>
+                                  </div>
+                                </div>
+                              </li>
+                        </ul>
+
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+</div>
+</div>
+</div>
+{% endblock %}

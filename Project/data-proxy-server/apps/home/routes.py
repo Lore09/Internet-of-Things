@@ -2,7 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-from apps import registered_devices, mqtt_client, influx
+from apps import registered_devices, mqtt_client, influx, alarm_scheduler
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required
@@ -99,6 +99,11 @@ def get_segment(request):
 def devices():
     return render_template('pages/devices.html', cards=registered_devices)
 
+@blueprint.route('/alarms')
+@login_required
+def alarms():
+    return render_template('pages/alarms.html', cards=alarm_scheduler.get_alarms())
+
 @blueprint.route('/form', methods=['POST'])
 def handle_form():
     data = request.form.to_dict()
@@ -120,9 +125,9 @@ def handle_form():
 
 @blueprint.route('/api/trigger_alarm', methods=['POST'])
 def trigger_alarm():
-    data = list(request.form.keys())
+    device = list(request.form.keys())
 
-    mqtt_client.publish('trigger_alarm', f'devices/{data[0]}')
+    mqtt_client.publish('trigger_alarm', f'devices/{device[0]}')
 
     return redirect(url_for('home_blueprint.devices'))
 
