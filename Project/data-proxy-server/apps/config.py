@@ -41,6 +41,8 @@ class Config(object):
     INFLUXDB_ORG        = os.getenv('INFLUXDB_ORG', '')
     INFLUXDB_BUCKET     = os.getenv('INFLUXDB_BUCKET', '')
 
+    ALARMS_PATH         = os.getenv('ALARMS_PATH', './alarms.yaml')
+
     # try to set up a Relational DBMS
     if DB_ENGINE and DB_NAME and DB_USERNAME:
 

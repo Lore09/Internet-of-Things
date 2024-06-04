@@ -11,7 +11,10 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from apps.custom.mqtt import MQTTClient, MQTTConfig
 from apps.custom.influx import Influx
+from apps.custom.alarm import AlarmScheduler
 from flask_cdn import CDN
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -21,6 +24,9 @@ mqtt_client = MQTTClient()
 registered_devices = []
 
 influx = Influx()
+
+scheduler = BackgroundScheduler()
+alarm_scheduler = AlarmScheduler()
 
 def register_extensions(app):
     db.init_app(app)
@@ -89,6 +95,22 @@ def configure_influxdb(app):
 
     print('> INFLUXDB - ' + influx.client.health().to_str())
 
+def init_tasks(app):
+
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
+
+    alarms_path = app.config.get('ALARMS_PATH')
+    alarm_scheduler.load_alarms(alarms_path)
+
+    scheduler.add_job(
+        func=alarm_scheduler.check_alarms,
+        trigger="interval",
+        seconds=60)
+
+    # Start the scheduler
+    scheduler.start()
+
 def create_app(config):
 
     # Read debug flag
@@ -104,6 +126,7 @@ def create_app(config):
     configure_database(app)
     configure_mqtt(app)
     configure_influxdb(app)
+    init_tasks(app)
 
     if not DEBUG and 'CDN_DOMAIN' in app.config:
         cdn.init_app(app)
