@@ -106,7 +106,8 @@ def init_tasks(app):
     scheduler.add_job(
         func=alarm_scheduler.check_alarms,
         trigger="interval",
-        seconds=60)
+        seconds=30)
+    print('> SCHEDULER - Alarms scheduled to check every 30 seconds')
 
     # Start the scheduler
     scheduler.start()

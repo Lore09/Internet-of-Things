@@ -1,5 +1,4 @@
 import datetime
-from flask import url_for
 import yaml
 import requests
 
@@ -33,18 +32,19 @@ class AlarmScheduler():
     def trigger_alarm(self, device_id, alarm):
         print(f'Alarm triggered for device {device_id}: {alarm}')
 
-        # call the device to trigger the alarm with post request
-        requests.post(url_for('home_blueprint.trigger_alarm'), data={device_id: alarm})
+        requests.post("http://127.0.0.1:5000/api/trigger_alarm", data={device_id: alarm})
 
 
     def check_alarms(self):
         
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().replace(second=0, microsecond=0)
 
         for entry in self._alarms['devices']:
             for alarm in entry['alarms']:
                 
                 alarm_time = datetime.datetime.strptime(alarm['time'], '%H:%M').time()
+
+                print( f'Checking alarm for device {entry["device_id"]}: {alarm_time}')
 
                 if 'date' in alarm:
                     alarm_date = datetime.datetime.strptime(alarm['date'], '%Y-%m-%d').date()
