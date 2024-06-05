@@ -74,6 +74,6 @@ class AlarmScheduler():
                         continue
 
                 if 'days' in alarm:
-                    if now.weekday() in alarm['days'] and now.time() == alarm_time:
+                    if str(now.weekday()+1) in alarm['days'] and now.time() == alarm_time:
                         self.trigger_alarm(entry['device_id'], alarm)
                         continue
