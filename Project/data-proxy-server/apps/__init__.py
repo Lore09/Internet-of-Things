@@ -51,7 +51,7 @@ def configure_database(app):
             basedir = os.path.abspath(os.path.dirname(__file__))
             app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
 
-            print('> Fallback to SQLite ')
+            print('> Fallback to SQLite ' + SQLALCHEMY_DATABASE_URI)
             db.create_all()
 
     @app.teardown_request
@@ -100,7 +100,7 @@ def init_tasks(app):
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
 
-    alarms_path = app.config.get('ALARMS_PATH')
+    alarms_path =   os.path.join(app.config.get('APP_DATA_PATH'),app.config.get('ALARMS_FILE'))
     alarm_scheduler.load_alarms(alarms_path)
 
     scheduler.add_job(

@@ -1,15 +1,22 @@
 import datetime
 import yaml
 import requests
+import os
 
 class AlarmScheduler():
 
     def __init__(self):
         super().__init__()
     
-    def load_alarms(self, alarms_path = './alarms.yaml'):
+    def load_alarms(self, alarms_path):
         # load alarms from file
         self._alarms_path = alarms_path
+
+        # create if not present
+        if not os.path.exists(self._alarms_path):
+            with open(self._alarms_path, 'w') as file:
+                yaml.dump({'devices': []}, file)
+
         with open(self._alarms_path, 'r') as file:
             alarms = yaml.load(file, Loader=yaml.FullLoader)
             self._alarms = alarms
