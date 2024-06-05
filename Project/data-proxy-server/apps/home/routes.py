@@ -104,6 +104,36 @@ def devices():
 def alarms():
     return render_template('pages/alarms.html', cards=alarm_scheduler.get_alarms())
 
+@blueprint.route('/alarms/add', methods=['GET'])
+@login_required
+def add_alarm_page():
+    return render_template('pages/new_alarm.html', devices=registered_devices)
+
+@blueprint.route('/api/add_alarm', methods=['POST'])
+def add_alarm():
+    data = request.json
+
+    device_id = data['device']
+    type = data['type']
+    time = data['time']
+
+    if type == 'date':
+        date = data['date']
+        alarm_scheduler.add_alarm(device_id, {'time': time, 'date': date})
+    elif type == 'periodic':
+        days = data['days']
+        alarm_scheduler.add_alarm(device_id, {'time': time, 'days': days})
+
+    return redirect(url_for('home_blueprint.alarms'))
+
+@blueprint.route('/api/remove_alarm', methods=['POST'])
+def remove_alarm():
+    
+    data = request.form.to_dict()
+    alarm_scheduler.remove_alarm(data["device_id"], data["time"])
+    
+    return redirect(url_for('home_blueprint.alarms'))
+
 @blueprint.route('/form', methods=['POST'])
 def handle_form():
     data = request.form.to_dict()

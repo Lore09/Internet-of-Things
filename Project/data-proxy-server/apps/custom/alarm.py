@@ -22,15 +22,29 @@ class AlarmScheduler():
             self._alarms = alarms
 
     def get_alarms(self):
+        self.load_alarms(self._alarms_path)
         return self._alarms['devices']
     
     def add_alarm(self, device_id, alarm):
-        self._alarms[device_id].append(alarm)
+
+        for entry in self._alarms['devices']:
+            if entry['device_id'] == device_id:
+                entry['alarms'].append(alarm)
+                self.save_alarms()
+                return
+            
+        self._alarms['devices'].append({'device_id': device_id, 'alarms': [alarm]})
         self.save_alarms()
     
     def remove_alarm(self, device_id, alarm):
-        self._alarms[device_id].remove(alarm)
-        self.save_alarms()
+        
+        for device in self._alarms['devices']:
+            if device['device_id'] == device_id:
+                for entry in device['alarms']:
+                    if entry["time"] == alarm:
+                        device['alarms'].remove(entry)
+                        self.save_alarms()
+                        return
 
     def save_alarms(self):
         with open(self._alarms_path, 'w') as file:
