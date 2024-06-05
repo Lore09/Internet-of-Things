@@ -41,6 +41,9 @@ class Config(object):
     INFLUXDB_ORG        = os.getenv('INFLUXDB_ORG', '')
     INFLUXDB_BUCKET     = os.getenv('INFLUXDB_BUCKET', '')
 
+    ALARMS_FILE         = os.getenv('ALARMS_FILE', 'alarms.yaml')
+    APP_DATA_PATH       = os.getenv('APP_DATA_PATH', './data/')
+
     # try to set up a Relational DBMS
     if DB_ENGINE and DB_NAME and DB_USERNAME:
 
@@ -66,7 +69,10 @@ class Config(object):
     if USE_SQLITE:
 
         # This will create a file in <app> FOLDER
-        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
+        # TODO - Move this to a more appropriate location
+        app_dir = os.path.abspath(APP_DATA_PATH)
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(app_dir, 'db.sqlite3')
+        print('> USING SQLITE - ' + SQLALCHEMY_DATABASE_URI)
     
 class ProductionConfig(Config):
     DEBUG = False

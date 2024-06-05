@@ -11,7 +11,10 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from apps.custom.mqtt import MQTTClient, MQTTConfig
 from apps.custom.influx import Influx
+from apps.custom.alarm import AlarmScheduler
 from flask_cdn import CDN
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -21,6 +24,9 @@ mqtt_client = MQTTClient()
 registered_devices = []
 
 influx = Influx()
+
+scheduler = BackgroundScheduler()
+alarm_scheduler = AlarmScheduler()
 
 def register_extensions(app):
     db.init_app(app)
@@ -45,7 +51,7 @@ def configure_database(app):
             basedir = os.path.abspath(os.path.dirname(__file__))
             app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
 
-            print('> Fallback to SQLite ')
+            print('> Fallback to SQLite ' + SQLALCHEMY_DATABASE_URI)
             db.create_all()
 
     @app.teardown_request
@@ -89,6 +95,23 @@ def configure_influxdb(app):
 
     print('> INFLUXDB - ' + influx.client.health().to_str())
 
+def init_tasks(app):
+
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
+
+    alarms_path =   os.path.join(app.config.get('APP_DATA_PATH'),app.config.get('ALARMS_FILE'))
+    alarm_scheduler.load_alarms(alarms_path)
+
+    scheduler.add_job(
+        func=alarm_scheduler.check_alarms,
+        trigger="interval",
+        seconds=30)
+    print('> SCHEDULER - Alarms scheduled to check every 30 seconds')
+
+    # Start the scheduler
+    scheduler.start()
+
 def create_app(config):
 
     # Read debug flag
@@ -104,6 +127,7 @@ def create_app(config):
     configure_database(app)
     configure_mqtt(app)
     configure_influxdb(app)
+    init_tasks(app)
 
     if not DEBUG and 'CDN_DOMAIN' in app.config:
         cdn.init_app(app)

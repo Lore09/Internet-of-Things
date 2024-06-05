@@ -13,7 +13,7 @@
           <label>Dashboard</label>
           <i class="ti ti-dashboard"></i>
         </li>
-        
+
         <li class="pc-item">
           <a href="/" class="pc-link">
             <span class="pc-micon"><i class="ti ti-dashboard"></i></span>
@@ -30,10 +30,12 @@
           <ul class="pc-submenu">
 
             {% if current_user.is_authenticated %}
-              <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.logout') }}">Logout</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.logout') }}">Logout</a>
+            </li>
             {% else %}
-              <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.login') }}">Login</a></li>
-              <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.register') }}">Register</a></li>
+            <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.login') }}">Login</a></li>
+            <li class="pc-item"><a class="pc-link"
+                href="{{ url_for('authentication_blueprint.register') }}">Register</a></li>
             {% endif %}
 
           </ul>
@@ -42,17 +44,25 @@
           <label>Elements</label>
           <i class="ti ti-apps"></i>
         </li>
+
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.devices') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-section"></i></span><span class="pc-mtext">Devices</span></a>
+        </li>
+
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.alarms') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-alarm"></i></span><span class="pc-mtext">Alarms</span></a>
+        </li>
+
         <li class="pc-item">
           <a href="{{ url_for('home_blueprint.typography') }}" class="pc-link"><span class="pc-micon"><i
                 class="ti ti-typography"></i></span><span class="pc-mtext">Typography</span></a>
         </li>
+
         <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.devices') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-typography"></i></span><span class="pc-mtext">Devices</span></a>
-        </li>
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.color') }}" class="pc-link"><span class="pc-micon"><i class="ti ti-brush"></i></span><span
-              class="pc-mtext">Color</span></a>
+          <a href="{{ url_for('home_blueprint.color') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-brush"></i></span><span class="pc-mtext">Color</span></a>
         </li>
         <li class="pc-item">
           <a href="{{ url_for('home_blueprint.icon_tabler') }}" class="pc-link"><span class="pc-micon"><i
@@ -65,16 +75,18 @@
         </li>
         <li class="pc-item">
           <a href="{{ url_for('home_blueprint.sample_page') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-brand-chrome"></i></span><span class="pc-mtext">Sample page</span></a></li>
+                class="ti ti-brand-chrome"></i></span><span class="pc-mtext">Sample page</span></a>
+        </li>
         <li class="pc-item">
           <a href="https://github.com/app-generator/flask-berry-dashboard" target="_blank" class="pc-link"><span
-              class="pc-micon"><i class="ti ti-vocabulary"></i></span><span class="pc-mtext">DOCS</span></a></li>
+              class="pc-micon"><i class="ti ti-vocabulary"></i></span><span class="pc-mtext">DOCS</span></a>
+        </li>
       </ul>
       <div class="pc-navbar-card bg-primary rounded">
         <h4 class="text-white">Berry Bootstrap 5</h4>
         <p class="text-white opacity-75">Open-Source Theme</p>
-        <a href="https://appseed.us/product/berry-dashboard/flask/"  
-           target="_blank" class="btn btn-light text-primary">Download</a>
+        <a href="https://appseed.us/product/berry-dashboard/flask/" target="_blank"
+          class="btn btn-light text-primary">Download</a>
       </div>
     </div>
   </div>

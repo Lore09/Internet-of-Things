@@ -1,0 +1,73 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Alarms {% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+    <div class="pc-content">
+
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">Alarms</h5>
+                        </div>
+                    </div>
+                    <div class="col-6 align-items-end">
+                        <a href="{{ url_for('home_blueprint.add_alarm_page') }}" class="btn btn-primary">Add Alarm</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            {% for x in cards %}
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            {{ x.device_id }}
+                        </h3>
+                    </div>
+
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+
+                            {% for alarm in x.alarms %}
+                            <li class="list-group-item px-0">
+                                <div class="row align-items-start">
+                                    <div class="col-md-2">
+                                        <h4 class="mb-0">{{ alarm.time }}</h5>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <h4 class="mb-0">{{ alarm.date }}</h4>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <h4 class="mb-0">{{ alarm.days }}</h4>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <form action="{{ url_for('home_blueprint.remove_alarm') }}" method="POST">
+                                            <input type="hidden" name="device_id" value="{{ x.device_id }}">
+                                            <input type="hidden" name="time" value="{{ alarm.time }}">
+                                            <button class="btn btn-danger" type="submit">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
