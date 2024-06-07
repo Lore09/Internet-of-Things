@@ -1,24 +1,9 @@
 import re
 from datetime import datetime
 import pandas as pd
-from influxdb_client import InfluxDBClient
-
-url = "http://localhost:1235"
-org = "internet-of-things"
-
-bucket = '"pressure-sensor-data"'
-token = "mbeY0bBVOmDe4elawgLHEnhWCXrqIq-G6vCFXH45Fn9chls8lVROmDoIfD4g3tJBWsWtqsccQzPTPGI9L3Ddgw=="
-
-_measurement = '"pressure_sensor"'
-_field = '"sensor_data"'
-
-bucket = "pressure-sensor-data"
-_measurement = "pressure_sensor"
-_field = "sensor_data"
 
 
-
-def read_first_last_values(InfluxDB):
+def read_first_last_values(InfluxDB, names):
     query_first = f'''
     from(bucket: "{InfluxDB.bucket}")
       |> range(start: -365d)
@@ -50,9 +35,9 @@ def read_first_last_values(InfluxDB):
     for table in result:
         for record in table.records:
             records.append({
-                'value': record.get_value(),
-                'field': record.get_field(),
-                'time': record.get_time()
+                names.df_pressure_value:    record.get_value(),
+                names.df_field:             record.get_field(),
+                names.df_time:              record.get_time()
             })
 
     # Convert the records list to a pandas DataFrame
@@ -60,7 +45,7 @@ def read_first_last_values(InfluxDB):
 
 
     #return the table and print the result
-    result = query_api.query(org=org, query=query_last)
+    result = query_api.query(org=InfluxDB.org, query=query_last)
 
     # Initialize a list to hold the records
     records = []
@@ -68,9 +53,9 @@ def read_first_last_values(InfluxDB):
     for table in result:
         for record in table.records:
             records.append({
-                'value': record.get_value(),
-                'field': record.get_field(),
-                'time': record.get_time()
+                names.df_pressure_value:    record.get_value(),
+                names.df_field:             record.get_field(),
+                names.df_time:              record.get_time()
             })
 
     # Convert the records list to a pandas DataFrame
@@ -81,7 +66,7 @@ def read_first_last_values(InfluxDB):
 
 
 
-def read_data_with_time_period(InfluxDB, start_time: datetime, end_time: datetime = None):
+def read_data_with_time_period(InfluxDB, names, start_time: datetime, end_time: datetime = None):
 
     # Convert datetime to RFC3339 format string
     start = start_time.isoformat(timespec='seconds') + 'Z'
@@ -109,9 +94,9 @@ def read_data_with_time_period(InfluxDB, start_time: datetime, end_time: datetim
     for table in result:
         for record in table.records:
             records.append({
-                'value': record.get_value(),
-                'field': record.get_field(),
-                'time': record.get_time()
+                names.df_pressure_value:    record.get_value(),
+                names.df_field:             record.get_field(),
+                names.df_time:              record.get_time()
             })
 
     # Convert the records list to a pandas DataFrame
@@ -119,10 +104,3 @@ def read_data_with_time_period(InfluxDB, start_time: datetime, end_time: datetim
 
     return df
     
-
-
-# start_time = datetime(2024, 6, 1, 0, 0, 0)
-# end_time = datetime(2024, 6, 2, 0, 0, 0)
-
-# df = read_data_with_time_period(bucket, _measurement, _field, start_time, end_time)
-# print(df.head(10), "\n\n", df.tail(10))
