@@ -57,14 +57,14 @@ def detect_sleep_periods(pressure_data, pressure_column, time_column, pillow_wei
 
 
 
-def compute_sleep_time(pillow_weight:int, head_weight:int, start_time:datetime, end_time:datetime, pressure_column, time_column):
+def compute_sleep_time(InfluxDB, pillow_weight:int, head_weight:int, start_time:datetime, end_time:datetime, pressure_column, time_column):
     """
     This function will compute the hours of sleep given
     - weight0: the value returned by the sensor with only the pillow
     - weight1: the value returned by the sensor with the head too 
     """
 
-    df = read_data_with_time_period(start_time, end_time)
+    df = read_data_with_time_period(InfluxDB, start_time, end_time)
     # print(df.head(10), "\n\n", df.tail(10))
 
     total_sleep_duration, sleep_periods = detect_sleep_periods(df, pressure_column, time_column, pillow_weight, head_weight)
@@ -75,7 +75,7 @@ def compute_sleep_time(pillow_weight:int, head_weight:int, start_time:datetime, 
 
 
 
-def compute_sleep_time_for_each_day(pillow_weight:int, head_weight:int, pressure_column, time_column, starting_sleep_hour=20):
+def compute_sleep_time_for_each_day(InfluxDB, pillow_weight:int, head_weight:int, pressure_column, time_column, starting_sleep_hour=20):
     """
     We will compute the hours of sleep of a day considering the sleep time
     between starting_sleep_hour of the previous day and starting_sleep_hour pm of the successive day.
@@ -86,7 +86,7 @@ def compute_sleep_time_for_each_day(pillow_weight:int, head_weight:int, pressure
 
     # reading the first value in the database (in the last 365 days)
     # and the last one
-    df_first_last = read_first_last_values()
+    df_first_last = read_first_last_values(InfluxDB)
 
     # extract the time
     date_first_row = df_first_last.loc[0, time_column]
@@ -121,7 +121,7 @@ def compute_sleep_time_for_each_day(pillow_weight:int, head_weight:int, pressure
         # create the datetime object of the current day at the correct hour
         ending_time_period = pd.to_datetime(date.date()) + pd.Timedelta(hours=starting_sleep_hour)
         
-        hours_of_sleep = compute_sleep_time(pillow_weight, head_weight, starting_time_period, ending_time_period, pressure_column, time_column)
+        hours_of_sleep = compute_sleep_time(InfluxDB, pillow_weight, head_weight, starting_time_period, ending_time_period, pressure_column, time_column)
 
         hours_of_sleep_per_day.append((starting_time_period.date(), hours_of_sleep))
 

@@ -18,31 +18,31 @@ _field = "sensor_data"
 
 
 
-def read_first_last_values():
+def read_first_last_values(InfluxDB):
     query_first = f'''
-    from(bucket: "{bucket}")
+    from(bucket: "{InfluxDB.bucket}")
       |> range(start: -365d)
       |> first()
-      |> filter(fn: (r) => r._measurement == "{_measurement}")
-      |> filter(fn: (r) => r._field == "{_field}")
+      |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
+      |> filter(fn: (r) => r._field == "{InfluxDB.field}")
     '''
 
     query_last = f'''
-    from(bucket: "{bucket}")
+    from(bucket: "{InfluxDB.bucket}")
       |> range(start: -365d)
       |> last()
-      |> filter(fn: (r) => r._measurement == "{_measurement}")
-      |> filter(fn: (r) => r._field == "{_field}")
+      |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
+      |> filter(fn: (r) => r._field == "{InfluxDB.field}")
     '''
     
     #establish a connection
-    client = InfluxDBClient(url=url, token=token, org=org)
+    client = InfluxDB.client
 
     #instantiate the QueryAPI
     query_api = client.query_api()
 
     #return the table and print the result
-    result = query_api.query(org=org, query=query_first)
+    result = query_api.query(org=InfluxDB.org, query=query_first)
 
     # Initialize a list to hold the records
     records = []
@@ -76,34 +76,32 @@ def read_first_last_values():
     # Convert the records list to a pandas DataFrame
     df_last = pd.DataFrame(records)
 
-    client.close()
-
     df_concatenated = pd.concat([df_first, df_last], ignore_index=True)
     return df_concatenated
 
 
 
-def read_data_with_time_period(start_time: datetime, end_time: datetime = None):
+def read_data_with_time_period(InfluxDB, start_time: datetime, end_time: datetime = None):
 
     # Convert datetime to RFC3339 format string
     start = start_time.isoformat(timespec='seconds') + 'Z'
     end = end_time.isoformat(timespec='seconds') + 'Z' if end_time else 'now()'
 
     query = f'''
-    from(bucket: "{bucket}")
+    from(bucket: "{InfluxDB.bucket}")
       |> range(start: {start}, stop: {end})
-      |> filter(fn: (r) => r._measurement == "{_measurement}")
-      |> filter(fn: (r) => r._field == "{_field}")
+      |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
+      |> filter(fn: (r) => r._field == "{InfluxDB.field}")
     '''
     
     #establish a connection
-    client = InfluxDBClient(url=url, token=token, org=org)
+    client = InfluxDB.client
 
     #instantiate the QueryAPI
     query_api = client.query_api()
 
     #return the table and print the result
-    result = query_api.query(org=org, query=query)
+    result = query_api.query(org=InfluxDB.org, query=query)
 
     # Initialize a list to hold the records
     records = []
@@ -119,7 +117,6 @@ def read_data_with_time_period(start_time: datetime, end_time: datetime = None):
     # Convert the records list to a pandas DataFrame
     df = pd.DataFrame(records)
 
-    client.close()
     return df
     
 
