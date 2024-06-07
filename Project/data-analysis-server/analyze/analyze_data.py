@@ -1,4 +1,4 @@
-from read_from_db import read_data_with_time_period, read_first_last_values
+from analyze.read_from_db import read_data_with_time_period, read_first_last_values
 from datetime import datetime
 import pandas as pd
 
@@ -135,8 +135,8 @@ head_weight = 10    # Example weight of the head
 pressure_column = 'value'
 time_column = 'time'
 
-hours_of_sleep_per_day = compute_sleep_time_for_each_day(pillow_weight, head_weight, pressure_column, time_column)
+# hours_of_sleep_per_day = compute_sleep_time_for_each_day(pillow_weight, head_weight, pressure_column, time_column)
 
-for date, sleep_time in hours_of_sleep_per_day:
-    print(date, " : ", sleep_time, "hours")
+# for date, sleep_time in hours_of_sleep_per_day:
+#     print(date, " : ", sleep_time, "hours")
 
