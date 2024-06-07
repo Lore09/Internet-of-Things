@@ -3,6 +3,12 @@ from datetime import datetime
 import pandas as pd
 
 
+def validate_time_range(time_range: str) -> bool:
+    # Regex to validate time range format like "-12h", "-30m", "-2d", etc.
+    pattern = re.compile(r"^-?\d+[smhdw]$")
+    return bool(pattern.match(time_range))
+
+
 def read_first_value(InfluxDB, names):
     query_first = f'''
     from(bucket: "{InfluxDB.bucket}")
@@ -75,19 +81,40 @@ def read_last_value(InfluxDB, names):
 
 
 
-def read_data_with_time_period(InfluxDB, names, start_time: datetime, end_time: datetime = None):
-
-    # Convert datetime to RFC3339 format string
-    start = start_time.isoformat(timespec='seconds') + 'Z'
-    end = end_time.isoformat(timespec='seconds') + 'Z' if end_time else 'now()'
-
-    query = f'''
-    from(bucket: "{InfluxDB.bucket}")
-      |> range(start: {start}, stop: {end})
-      |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
-      |> filter(fn: (r) => r._field == "{InfluxDB.field}")
-    '''
+def generate_query_for_time_period(InfluxDB, start_time, end_time: datetime = None):
     
+    query = None
+
+    if isinstance(start_time, datetime):
+    
+        # Convert datetime to RFC3339 format string
+        start = start_time.isoformat(timespec='seconds') + 'Z'
+        end = end_time.isoformat(timespec='seconds') + 'Z' if end_time else 'now()'
+
+        query = f'''
+                from(bucket: "{InfluxDB.bucket}")
+                |> range(start: {start}, stop: {end})
+                |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
+                |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+                '''
+
+    else:
+        if validate_time_range(start_time):
+            query = f'''
+                    from(bucket: "{InfluxDB.bucket}")
+                    |> range(start: {start_time})
+                    |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
+                    |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+                    '''
+
+    return query
+    
+
+
+def read_data_with_time_period(InfluxDB, names, start_time, end_time: datetime = None):
+
+    query = generate_query_for_time_period(InfluxDB, start_time, end_time)
+
     #establish a connection
     client = InfluxDB.client
 
