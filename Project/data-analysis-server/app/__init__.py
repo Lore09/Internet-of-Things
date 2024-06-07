@@ -15,7 +15,8 @@ def create_influxDB_client():
     INFLUXDB_FIELD            = os.getenv('INFLUXDB_FIELD',         None)
 
     InfluxDB = Influx()
-    InfluxDB.set_influx_client( url         = INFLUXDB_URL, 
+    InfluxDB.set_influx_client( 
+                                url         = INFLUXDB_URL, 
                                 token       = INFLUXDB_TOKEN, 
                                 org         = INFLUXDB_ORG, 
                                 bucket      = INFLUXDB_BUCKET,
@@ -27,14 +28,22 @@ def create_influxDB_client():
 
 def define_names():
 
-    DF_PRESSURE_VALUE   = os.getenv('DF_PRESSURE_VALUE',    None)
-    DF_FIELD            = os.getenv('DF_FIELD',             None)
-    DF_TIME             = os.getenv('DF_TIME',              None)
+    DF_PRESSURE_VALUE       = os.getenv('DF_PRESSURE_VALUE',        None)
+    DF_FIELD                = os.getenv('DF_FIELD',                 None)
+    DF_TIME                 = os.getenv('DF_TIME',                  None)
     
-    DF_SLEEP_HOURS_DATE = os.getenv('DF_SLEEP_HOURS_DATE',  None)
-    DF_SLEEP_HOURS_H    = os.getenv('DF_SLEEP_HOURS_H',     None)
+    DF_SLEEP_HOURS_DATE     = os.getenv('DF_SLEEP_HOURS_DATE',      None)
+    DF_SLEEP_HOURS_H        = os.getenv('DF_SLEEP_HOURS_H',         None)
+    SLEEP_HOURS_FILE_NAME   = os.getenv('SLEEP_HOURS_FILE_NAME',    None)
 
     names = Names()
-    names.define(DF_PRESSURE_VALUE, DF_FIELD, DF_TIME, DF_SLEEP_HOURS_DATE, DF_SLEEP_HOURS_H)
+    names.define(
+                df_pressure_value=DF_PRESSURE_VALUE, 
+                df_field=DF_FIELD, 
+                df_time=DF_TIME, 
+                df_sleep_hours_date=DF_SLEEP_HOURS_DATE, 
+                df_sleep_hours_h=DF_SLEEP_HOURS_H, 
+                sleep_hours_file_name=SLEEP_HOURS_FILE_NAME
+                )
 
     return names

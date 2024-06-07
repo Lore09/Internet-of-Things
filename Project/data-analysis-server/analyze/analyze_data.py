@@ -1,6 +1,26 @@
-from analyze.read_from_db import read_data_with_time_period, read_first_last_values
+from analyze.read_from_db import read_first_value, read_last_value
+from analyze.read_from_db import read_data_with_time_period
 from datetime import datetime
 import pandas as pd
+
+
+def from_df_to_dict(names, df):
+    """
+    function that from a dataframe containing two columns
+    - date
+    - hours of sleep
+    return a dictionary having as key the date
+    """
+
+    # Ensure the DataFrame has the required columns
+    if not all(column in df.columns for column in [names.df_sleep_hours_date, names.df_sleep_hours_h]):
+        raise ValueError("DataFrame must contain 'date' and 'hours' columns")
+
+    # Convert the DataFrame to a dictionary
+    result_dict = df.set_index(names.df_sleep_hours_date)[names.df_sleep_hours_h].to_dict()
+
+    return result_dict
+
 
 
 def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, threshold_factor=0.5, min_sleep_duration_minutes=10):
@@ -82,7 +102,25 @@ def compute_sleep_time(InfluxDB, names, pillow_weight:int, head_weight:int, date
 
     total_sleep_duration, sleep_periods = detect_sleep_periods(df, names, pillow_weight, head_weight)
 
-    return start_time, total_sleep_duration
+    return end_time, total_sleep_duration
+
+
+
+def loop_over_dates(InfluxDB, names, start_date, end_date, pillow_weight:int, head_weight:int, starting_sleep_hour):
+    # Create an iterator to iterate over the range of dates
+    date_iterator = pd.date_range(start=start_date, end=end_date)
+
+    # result list containing tuples of (day, hours_of_sleep)
+    hours_of_sleep_per_day = []
+
+    # Iterate over the dates and print datetime objects for each date
+    for date in date_iterator:
+    
+        starting_time_period, hours_of_sleep = compute_sleep_time(InfluxDB, names, pillow_weight, head_weight, date, starting_sleep_hour)
+        
+        hours_of_sleep_per_day.append((starting_time_period.date(), hours_of_sleep))
+    
+    return hours_of_sleep_per_day
 
 
 
@@ -95,12 +133,13 @@ def compute_sleep_time_for_each_day(InfluxDB, names, pillow_weight:int, head_wei
     time_column = names.df_time
 
     # reading the first value in the database (in the last 365 days)
+    df_first = read_first_value(InfluxDB, names)
     # and the last one
-    df_first_last = read_first_last_values(InfluxDB, names)
+    df_last = read_last_value(InfluxDB, names)
 
     # extract the time
-    date_first_row = df_first_last.loc[0, time_column]
-    date_second_row = df_first_last.loc[1, time_column]
+    date_first_row = df_first.loc[0, time_column]
+    date_second_row = df_last.loc[0, time_column]
 
     # Create datetime objects
     start_date = pd.to_datetime(date_first_row)
@@ -116,24 +155,55 @@ def compute_sleep_time_for_each_day(InfluxDB, names, pillow_weight:int, head_wei
     if end_hour > starting_sleep_hour:
         end_date += pd.Timedelta(days=1)
 
-    # Create an iterator to iterate over the range of dates
-    date_iterator = pd.date_range(start=start_date.date(), end=end_date.date())
-
-    # result list containing tuples of (day, hours_of_sleep)
-    hours_of_sleep_per_day = []
-
-    # Iterate over the dates and print datetime objects for each date
-    for date in date_iterator:
-    
-        starting_time_period, hours_of_sleep = compute_sleep_time(InfluxDB, names, pillow_weight, head_weight, date, starting_sleep_hour)
-        
-        hours_of_sleep_per_day.append((starting_time_period.date(), hours_of_sleep))
-
+    # loop over the days to obtain the sleep time for each day
+    hours_of_sleep_per_day = loop_over_dates(InfluxDB, names, start_date.date(), end_date.date(), pillow_weight, head_weight, starting_sleep_hour)
 
     # saving the result of the computation to avoid re computing it again
     columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h]
     df_hours_of_sleep_per_day = pd.DataFrame(hours_of_sleep_per_day, columns=columns_name)
-    df_hours_of_sleep_per_day.to_csv("hours_of_sleep_per_day.csv")
+    df_hours_of_sleep_per_day.to_csv(names.sleep_hours_file_name)
 
+    print("Computed sleep time for each day")
     return hours_of_sleep_per_day
+
+
+
+def compute_sleep_time_for_remaining_days(InfluxDB, names, pillow_weight:int, head_weight:int, starting_sleep_hour=20):
+    
+    # reading the csv file 
+    df_hours_of_sleep_per_day = pd.read_csv(names.sleep_hours_file_name)
+
+    # retrieving the last day for which the hours of sleep were computed
+    last_date_file = df_hours_of_sleep_per_day.iloc[-1][names.df_sleep_hours_date]
+
+    # retrieve the last datapoint in the DB
+    df_last = read_last_value(InfluxDB, names)
+    # retrieve the time of the last datapoint in the db
+    last_time_in_db = df_last.loc[0, names.df_time]
+
+    # create the datetime object
+    last_date_file = pd.to_datetime(last_date_file)
+    last_time_in_db = pd.to_datetime(last_time_in_db)
+    
+    # retrieve the hour
+    end_hour = last_time_in_db.hour
+    # adjust the end date based on the hour
+    if end_hour > starting_sleep_hour:
+        end_date += pd.Timedelta(days=1)
+
+    # loop over the days to obtain the sleep time for the remaining days
+    hours_of_sleep_of_remaining_day = loop_over_dates(InfluxDB, names, last_date_file.date(), last_time_in_db.date(), pillow_weight, head_weight, starting_sleep_hour)
+
+    # creating the dataframe
+    columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h]
+    hours_of_sleep_of_remaining_day = pd.DataFrame(hours_of_sleep_of_remaining_day, columns=columns_name)
+
+    old_information_minus_last_day = df_hours_of_sleep_per_day.iloc[:-1]
+    updated_df = pd.concat([old_information_minus_last_day, hours_of_sleep_of_remaining_day], ignore_index=True)
+
+    updated_df.to_csv(names.sleep_hours_file_name)
+    print("csv file updated")
+
+    # transform the dataframe to dict
+    return from_df_to_dict(names, updated_df)
 

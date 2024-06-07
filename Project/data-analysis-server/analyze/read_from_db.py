@@ -3,19 +3,11 @@ from datetime import datetime
 import pandas as pd
 
 
-def read_first_last_values(InfluxDB, names):
+def read_first_value(InfluxDB, names):
     query_first = f'''
     from(bucket: "{InfluxDB.bucket}")
       |> range(start: -365d)
       |> first()
-      |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
-      |> filter(fn: (r) => r._field == "{InfluxDB.field}")
-    '''
-
-    query_last = f'''
-    from(bucket: "{InfluxDB.bucket}")
-      |> range(start: -365d)
-      |> last()
       |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
       |> filter(fn: (r) => r._field == "{InfluxDB.field}")
     '''
@@ -43,6 +35,24 @@ def read_first_last_values(InfluxDB, names):
     # Convert the records list to a pandas DataFrame
     df_first = pd.DataFrame(records)
 
+    return df_first
+
+
+
+def read_last_value(InfluxDB, names):
+    query_last = f'''
+    from(bucket: "{InfluxDB.bucket}")
+      |> range(start: -365d)
+      |> last()
+      |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
+      |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+    '''
+    
+    #establish a connection
+    client = InfluxDB.client
+
+    #instantiate the QueryAPI
+    query_api = client.query_api()
 
     #return the table and print the result
     result = query_api.query(org=InfluxDB.org, query=query_last)
@@ -61,8 +71,7 @@ def read_first_last_values(InfluxDB, names):
     # Convert the records list to a pandas DataFrame
     df_last = pd.DataFrame(records)
 
-    df_concatenated = pd.concat([df_first, df_last], ignore_index=True)
-    return df_concatenated
+    return df_last
 
 
 
