@@ -23,6 +23,10 @@ def get_resleep_minutes(InfluxDB, names, pillow_weight, head_weight, how_many_mi
 
 def repeat_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, alarm, how_many_minutes=5):
     woke_up = False
+
+    # increase the sampling rate
+    new_sampling_rate = 10
+    requests.post("http://127.0.0.1:5000/form", data={device_id: new_sampling_rate})
     
     while not woke_up:
         time.sleep(how_many_minutes * 60)
@@ -38,6 +42,10 @@ def repeat_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id,
             # otherwise trigger alarm again
             requests.post("http://127.0.0.1:5000/api/trigger_alarm", data={device_id: alarm})
          
+    # change the sampling rate to the defualt value
+    new_sampling_rate = 30
+    requests.post("http://127.0.0.1:5000/form", data={device_id: new_sampling_rate})
+    
 
 
 def create_thread_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, alarm, how_many_minutes=5):
