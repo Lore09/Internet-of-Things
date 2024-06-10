@@ -146,6 +146,34 @@ def parse_add_msg(message, help_msgs, URL_REQUEST):
             
 
 
+def parse_update_msg(message, help_msgs, URL_REQUEST):
+    text = ""
+    splitted_msg = message.split(" ")
+
+    if len(splitted_msg) != 5:
+        text = "Error: the message doesn't contain the correct information " + help_msgs["update_alarm"]  
+    else:
+
+        delete_msg = splitted_msg[0] + " " + splitted_msg[1] + " " + splitted_msg [2]
+
+        add_msg = splitted_msg[0] + " " + splitted_msg[1] + " " + splitted_msg[3] + " " + splitted_msg[4]
+        # for i in range(3, len(splitted_msg)):
+        #     add_msg += " "
+        #     add_msg += splitted_msg[i]
+
+        # create the new alarm
+        res_add = parse_add_msg(add_msg, help_msgs, URL_REQUEST) 
+
+        if res_add != "Done!":
+            text = res_add
+        else:
+            # delete the old alarm
+            text = parse_remove_msg(delete_msg, help_msgs, URL_REQUEST) 
+
+    return text
+
+
+
 def parse_trigger_msg(message, help_msgs, URL_REQUEST):
     text = ""
     splitted_msg = message.split(" ")
