@@ -15,8 +15,8 @@
 #include "dragonspiral_tower.h"
 
 // Replace with your network credentials
-const char* ssid = "VodafoneArmata Edition";          // WiFi SSID
-const char* ssid_password = "MassoneTerrone666!";     // WiFi password
+const char* ssid = "your-wifi";          // WiFi SSID
+const char* ssid_password = "your-pass";     // WiFi password
 
 // MQTT settings
 const char* mqtt_server = "rebus.ninja";              // MQTT server 
@@ -59,23 +59,25 @@ void play_audio(){
   
     if(player->isRunning())
       player->stop();
+
+    delay(10);
   
     // SONG MAPPING
     switch (current_song)
     {
-    case 1:
+    case 1: // Cloudy
       file = new AudioFileSourcePROGMEM( battle_platinum_mp3, sizeof(battle_platinum_mp3) );
       break;
 
-    case 2:
+    case 2: // Rainy
       file = new AudioFileSourcePROGMEM( undella_town_mp3, sizeof(undella_town_mp3) );
       break;
   
-    case 3:
+    case 3: // Foggy
       file = new AudioFileSourcePROGMEM( dragonspiral_tower_mp3, sizeof(dragonspiral_tower_mp3) );
       break;
     
-    default:
+    default: // Sunny or default
       file = new AudioFileSourcePROGMEM( accumula_town_mp3, sizeof(accumula_town_mp3) );
       current_song = 0;
     }
@@ -227,7 +229,7 @@ void loop() {
     // read sensor data
     int data = analogRead(SENSOR_PIN);
 
-    String content = "client_id=" + String(client_id) + "&data=" + String(data);
+    String content = "Sending data:\tclient_id=" + String(client_id) + "&data=" + String(data);
     Serial.println(content);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     http.POST(content);
@@ -242,5 +244,4 @@ void loop() {
       
   }
 
-  delay(1);
 }
