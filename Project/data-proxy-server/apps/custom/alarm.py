@@ -36,15 +36,26 @@ class AlarmScheduler():
         self._alarms['devices'].append({'device_id': device_id, 'alarms': [alarm]})
         self.save_alarms()
     
-    def remove_alarm(self, device_id, alarm):
+    def remove_alarm(self, device_id, time, date, days):
+
+        print(f'Removing alarm for device {device_id} at {time} {date} {days}')
         
         for device in self._alarms['devices']:
+
             if device['device_id'] == device_id:
                 for entry in device['alarms']:
-                    if entry["time"] == alarm:
-                        device['alarms'].remove(entry)
-                        self.save_alarms()
-                        return
+
+                    if entry["time"] == time:
+
+                        if 'date' in entry and entry['date'] == date:
+                            device['alarms'].remove(entry)
+                            self.save_alarms()
+                            return
+
+                        if 'days' in entry and entry['days'] == days:
+                            device['alarms'].remove(entry)
+                            self.save_alarms()
+                            return
 
     def save_alarms(self):
         with open(self._alarms_path, 'w') as file:

@@ -51,6 +51,8 @@
                                         <form action="{{ url_for('home_blueprint.remove_alarm') }}" method="POST">
                                             <input type="hidden" name="device_id" value="{{ x.device_id }}">
                                             <input type="hidden" name="time" value="{{ alarm.time }}">
+                                            <input type="hidden" name="date" value="{{ alarm.date }}">
+                                            <input type="hidden" name="days" value="{{ alarm.days }}">
                                             <button class="btn btn-danger" type="submit">
                                                 <i class="ti ti-trash"></i>
                                             </button>
