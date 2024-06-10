@@ -15,7 +15,7 @@
                     </div>
                     <div class="card-body">
 
-                        <form action="{{ url_for('home_blueprint.handle_form') }}" method="POST">
+                        <form action="{{ url_for('home_blueprint.update_sampling_rate') }}" method="POST">
                             <div class="d-flex flex-row">
 
                                 <div class="p-2 align-content-center">
@@ -36,15 +36,15 @@
 
                             <form action="{{ url_for('home_blueprint.trigger_alarm') }}" method="POST">
                                 <div class="p-2">
-                                    <button type="submit" class="btn btn-primary" name="{{ x.name }}"
-                                        value="{{ x.name }}">Trigger alarm</button>
+                                    <input type="hidden" name="device_id" value="{{ x.name }}">
+                                    <button type="submit" class="btn btn-primary">Trigger alarm</button>
                                 </div>
                             </form>
 
                             <form action="{{ url_for('home_blueprint.stop_alarm') }}" method="POST">
                                 <div class="p-2">
-                                    <button type="submit" class="btn btn-primary" name="{{ x.name }}"
-                                        value="{{ x.name }}">Stop alarm</button>
+                                    <input type="hidden" name="device_id" value="{{ x.name }}">
+                                    <button type="submit" class="btn btn-primary"> Stop alarm</button>
                                 </div>
                             </form>
                         </div>
