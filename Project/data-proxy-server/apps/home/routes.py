@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 from apps import registered_devices, mqtt_client, influx, alarm_scheduler
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
-from flask_login import login_required
+from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 
 @blueprint.route('/index')
@@ -146,7 +146,10 @@ def add_alarm():
         days = data['days']
         alarm_scheduler.add_alarm(device_id, {'time': time, 'days': days})
 
-    return redirect(url_for('home_blueprint.alarms'))
+    if current_user.is_anonymous:
+        return make_response('OK', 200)
+    else:
+        return redirect(url_for('home_blueprint.alarms'))
 
 @blueprint.route('/api/remove_alarm', methods=['POST'])
 def remove_alarm():
@@ -159,10 +162,13 @@ def remove_alarm():
         days = data["days"].replace("'","").strip('][').split(', ')
         alarm_scheduler.remove_alarm(device_id=data["device_id"], time=data["time"], days=days, date=None)
     
-    return redirect(url_for('home_blueprint.alarms'))
+    if current_user.is_anonymous:
+        return make_response('OK', 200)
+    else:
+        return redirect(url_for('home_blueprint.alarms'))
 
-@blueprint.route('/form', methods=['POST'])
-def handle_form():
+@blueprint.route('/api/sampling_rate', methods=['POST'])
+def update_sampling_rate():
     data = request.form.to_dict()
 
     name = list(data.keys())[0]
@@ -182,19 +188,25 @@ def handle_form():
 
 @blueprint.route('/api/trigger_alarm', methods=['POST'])
 def trigger_alarm():
-    device = list(request.form.keys())
+    device = request.form.to_dict()['device_id']
 
-    mqtt_client.publish('trigger_alarm', f'devices/{device[0]}')
-
-    return redirect(url_for('home_blueprint.devices'))
+    mqtt_client.publish('trigger_alarm', f'devices/{device}')
+    
+    if current_user.is_anonymous:
+        return make_response('OK', 200)
+    else:
+        return redirect(url_for('home_blueprint.devices'))
 
 @blueprint.route('/api/stop_alarm', methods=['POST'])
 def stop_alarm():
-    data = list(request.form.keys())
+    device = request.form.to_dict()['device_id']
     
-    mqtt_client.publish('stop_alarm', f'devices/{data[0]}')
+    mqtt_client.publish('stop_alarm', f'devices/{device}')
 
-    return redirect(url_for('home_blueprint.devices'))
+    if current_user.is_anonymous:
+        return make_response('OK', 200)
+    else:
+        return redirect(url_for('home_blueprint.devices'))
 
 @blueprint.route('/api/sensor_data', methods=['POST'])
 def get_sensor_data():
