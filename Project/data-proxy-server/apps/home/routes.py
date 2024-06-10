@@ -99,6 +99,17 @@ def get_segment(request):
 def devices():
     return render_template('pages/devices.html', cards=registered_devices)
 
+@blueprint.route('/api/devices', methods=['GET'])
+def get_devices():
+    data = {
+        'devices': registered_devices
+    }
+    
+    resp = make_response(data, 200)
+    resp.headers['Content-Type'] = 'application/json'
+    
+    return resp
+
 @blueprint.route('/alarms')
 @login_required
 def alarms():
@@ -109,9 +120,8 @@ def alarms():
 def add_alarm_page():
     return render_template('pages/new_alarm.html', devices=registered_devices)
 
-@blueprint.route('/api/get_alarms', methods=['GET'])
+@blueprint.route('/api/alarms', methods=['GET'])
 def get_alarms():
-    
     
     data = {
         'devices': alarm_scheduler.get_alarms()
