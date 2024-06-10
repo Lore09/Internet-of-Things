@@ -30,14 +30,19 @@ help_msgs = {
             "remove_alarms" : """remove an alarm given:
                                 - device ID
                                 - alarm ID
-                        Example: /remove_alarm 1 1
+                        Example: /remove_alarm esp 1
             """,
             
             "add_alarm"     : """add a new alarm given
                                 - device ID
-                                - string representing the datime object, composed as:
-                                day-month-year-hour-minute (all integers)
-                        Example: /add_alarm 1 10-6-2024-8-00
+                                - type (1 for standard, 2 for periodic)
+                                - the other info
+                                    - if 1, a string representing the datime object, composed as:
+                                        day-month-year-hour-minute (all integers)
+                                        Example: /add_alarm esp 1 10-6-2024-8-00
+                                    - if 2, a string with the days (two letters) and the time
+                                        Example: /add_alarm esp 2 MO-WE-FR-8-0
+
             """,
 
             "trigger_alarm" : "trigger an alrm given the device ID",

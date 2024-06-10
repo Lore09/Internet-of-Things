@@ -1,15 +1,7 @@
 import requests
 from datetime import datetime
-
-map_days = {
-    "1": "MO",
-    "2": "TU",
-    "3": "WE",
-    "4": "TH",
-    "5": "FR",
-    "6": "SA",
-    "7": "SU",
-}
+from day_mapping import DayMapping
+day_mapping = DayMapping()
 
 def fetch_devices(URL_REQUEST):
     """
@@ -96,11 +88,11 @@ def fetch_alarms(URL_REQUEST):
                     formatted_message += f"  - {formatted_timestamp}\n"
                 else:
                     # process the alarm with periodicity
-                    
+
                     formatted_message += "  - "
                     for day in days:
                         # add the periodic days
-                        formatted_message += f"{map_days[day]} "
+                        formatted_message += f"{day_mapping.get_day_from_num(day)} "
                     
                     # add the time
                     formatted_message += f"at {alarm['time']}\n"
@@ -123,9 +115,15 @@ def query_remove(URL_REQUEST, device_id, alarm_id):
     return response.status_code
 
 
-def query_add(URL_REQUEST, device_id, type_add, date):
-    data = {"device_id": device_id, "date": date}
-    response = requests.post(f"{URL_REQUEST}/api/add_alarm", data=data)
+def query_add(URL_REQUEST, device_id, type_add, date, time):
+    if type_add == "date":
+        data = {"device": device_id, "type": type_add, "date": date, "time": time}
+    elif type_add == "periodic":
+        data = {"device": device_id, "type": type_add, "days": date, "time": time}
+    else:
+        print("Error: type_add is wrong")
+    
+    response = requests.post(f"{URL_REQUEST}/api/add_alarm", json=data)
     return response.status_code
 
 
