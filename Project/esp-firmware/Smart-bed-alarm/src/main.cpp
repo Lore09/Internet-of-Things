@@ -11,6 +11,8 @@
 
 #include "accumula_town.h"
 #include "battle_platinum.h"
+#include "undella_town.h"
+#include "dragonspiral_tower.h"
 
 // Replace with your network credentials
 const char* ssid = "VodafoneArmata Edition";          // WiFi SSID
@@ -63,6 +65,14 @@ void play_audio(){
     {
     case 1:
       file = new AudioFileSourcePROGMEM( battle_platinum_mp3, sizeof(battle_platinum_mp3) );
+      break;
+
+    case 2:
+      file = new AudioFileSourcePROGMEM( undella_town_mp3, sizeof(undella_town_mp3) );
+      break;
+  
+    case 3:
+      file = new AudioFileSourcePROGMEM( dragonspiral_tower_mp3, sizeof(dragonspiral_tower_mp3) );
       break;
     
     default:
