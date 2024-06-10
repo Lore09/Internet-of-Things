@@ -9,11 +9,14 @@
 #include "AudioOutputI2SNoDAC.h"
 #include "AudioFileSourceBuffer.h"
 
-#include "battle.h"
+#include "accumula_town.h"
+#include "battle_platinum.h"
+#include "undella_town.h"
+#include "dragonspiral_tower.h"
 
 // Replace with your network credentials
-const char* ssid = "Chungo-wifi";          // WiFi SSID
-const char* ssid_password = "ChungoGrasso";     // WiFi password
+const char* ssid = "your-wifi";          // WiFi SSID
+const char* ssid_password = "your-pass";     // WiFi password
 
 // MQTT settings
 const char* mqtt_server = "rebus.ninja";              // MQTT server 
@@ -35,6 +38,7 @@ AudioGeneratorMP3 *player;
 AudioFileSourcePROGMEM *file;
 AudioOutputI2SNoDAC *out;
 AudioFileSourceBuffer *buff;
+int current_song = 0;
 
 // WiFiClient setup
 WiFiClient espClient;
@@ -47,11 +51,41 @@ String msg;
 // NTP client setup
 const long utcOffsetInSeconds = 3600;
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 // HttpClient
 HTTPClient http;
+
+void play_audio(){
+  
+    if(player->isRunning())
+      player->stop();
+
+    delay(10);
+  
+    // SONG MAPPING
+    switch (current_song)
+    {
+    case 1: // Cloudy
+      file = new AudioFileSourcePROGMEM( battle_platinum_mp3, sizeof(battle_platinum_mp3) );
+      break;
+
+    case 2: // Rainy
+      file = new AudioFileSourcePROGMEM( undella_town_mp3, sizeof(undella_town_mp3) );
+      break;
+  
+    case 3: // Foggy
+      file = new AudioFileSourcePROGMEM( dragonspiral_tower_mp3, sizeof(dragonspiral_tower_mp3) );
+      break;
+    
+    default: // Sunny or default
+      file = new AudioFileSourcePROGMEM( accumula_town_mp3, sizeof(accumula_town_mp3) );
+      current_song = 0;
+    }
+  
+    buff = new AudioFileSourceBuffer(file, 2048);
+    player->begin(buff, out);
+  
+}
 
 void setup_wifi() {
   delay(10);
@@ -97,11 +131,12 @@ void callback(char* topic, byte* message, unsigned int length) {
     
     if(messageTemp.indexOf("trigger_alarm") >= 0){
 
-      // TODO change file to your audio file
       Serial.println("Alarm on");
-      file = new AudioFileSourcePROGMEM( battle_team_plasma_mp3, sizeof(battle_team_plasma_mp3) );
-      buff = new AudioFileSourceBuffer(file, 2048);
-      player->begin(buff, out);
+      
+      // get the song index
+      current_song = messageTemp.substring(messageTemp.indexOf(" ") + 1).toInt();
+
+      play_audio();
 
       return;
     }
@@ -153,11 +188,10 @@ void setupAudio(){
 
 }
 
+
 void setup() {
   Serial.begin(9600);
   setup_wifi();
-
-  timeClient.begin();
 
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
@@ -181,9 +215,8 @@ void loop() {
   if ((now - lastHeartbeat > heartbeat_interval)) {
     
     lastHeartbeat = now;
-    timeClient.update();
 
-    msg = "{ \"name\": \"" + String(client_id) + "\", \"time\": \"" + timeClient.getFormattedTime() + "\" }";
+    msg = "{ \"name\": \"" + String(client_id) + "\", \"sampling_rate\": " + String(samplinge_rate) + "}";
 
     Serial.println("Publish message: " + msg + " to topic: devices/heartbeat");
     client.publish("devices/heartbeat", msg.c_str());
@@ -196,7 +229,7 @@ void loop() {
     // read sensor data
     int data = analogRead(SENSOR_PIN);
 
-    String content = "client_id=" + String(client_id) + "&data=" + String(data);
+    String content = "Sending data:\tclient_id=" + String(client_id) + "&data=" + String(data);
     Serial.println(content);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     http.POST(content);
@@ -206,14 +239,9 @@ void loop() {
   if (player->isRunning()) {
 
     if (!player->loop()){
-      player->stop();
-      delay(10);
-      file = new AudioFileSourcePROGMEM( battle_team_plasma_mp3, sizeof(battle_team_plasma_mp3) );
-      buff = new AudioFileSourceBuffer(file, 2048);
-      player->begin(buff, out);
+      play_audio();
     }
       
   }
 
-  delay(1);
 }
