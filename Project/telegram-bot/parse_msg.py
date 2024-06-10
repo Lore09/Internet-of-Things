@@ -3,9 +3,29 @@ from query import *
 from day_mapping import DayMapping
 day_mapping = DayMapping()
 
+
+def find_device_and_alarm_idx(data, device_id, alarm_id):
+    idx_device = -1
+    idx_alarm = -1
+
+    for i in range(len(data)):
+        if data[i]["device_id"] == device_id:
+            idx_device = i
+            break
+
+    alarms = data[idx_device]["alarms"]
+
+    if alarm_id < len(alarms):
+        idx_alarm = alarm_id
+
+    return idx_device, idx_alarm
+
+
 def parse_remove_msg(message, help_msgs, URL_REQUEST):
     text = ""
     splitted_msg = message.split(" ")
+
+    text, data = fetch_alarms(URL_REQUEST)
     
     if len(splitted_msg) != 3:
         # check message length
@@ -15,13 +35,25 @@ def parse_remove_msg(message, help_msgs, URL_REQUEST):
         try:
             device_id   =     splitted_msg[1]
             alarm_id    = int(splitted_msg[2])
+            alarm_id -= 1
 
-            status_code = query_remove(URL_REQUEST, device_id, alarm_id)
+            idx_device, idx_alarm = find_device_and_alarm_idx(data, device_id, alarm_id)
 
-            if status_code == 200:
-                text = "Done!"
+            if idx_device == -1 or idx_alarm == -1:
+                text = "Error device not correct or alarm idx out of range\n " + help_msgs["remove_alarm"]
+
             else:
-                text = "Sorry, there is an internal error"
+                alarm = data[idx_device]["alarms"][idx_alarm]
+                time = alarm["time"]
+                date = alarm.get("date", None)
+                days = alarm.get("days", None)
+
+                status_code = query_remove(URL_REQUEST, device_id, time, date, days)
+
+                if status_code == 200:
+                    text = "Done!"
+                else:
+                    text = "Sorry, there is an internal error"
 
         except ValueError: 
             text = """

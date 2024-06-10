@@ -113,8 +113,8 @@ def fetch_alarms(URL_REQUEST):
 
 
 
-def query_remove(URL_REQUEST, device_id, alarm_id):
-    data = {"device_id": device_id, "time": alarm_id}
+def query_remove(URL_REQUEST, device_id, time, date, days):
+    data = {"device_id": device_id, "time": time, "date": date, "days": days}
     response = requests.post(f"{URL_REQUEST}/api/remove_alarm", data=data)
     return response.status_code
 

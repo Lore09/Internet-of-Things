@@ -27,7 +27,7 @@ help_msgs = {
             
             "get_alarms"    : "returns all the alarms",
             
-            "remove_alarms" : """remove an alarm given:
+            "remove_alarm" : """remove an alarm given:
                                 - device ID
                                 - alarm ID
                         Example: /remove_alarm esp 1
@@ -61,7 +61,7 @@ Commands:
     
 /get_alarms     {help_msgs["get_alarms"]}
     
-/remove_alarm   {help_msgs["remove_alarms"]}
+/remove_alarm   {help_msgs["remove_alarm"]}
     
 /add_alarm      {help_msgs["add_alarm"]}
 
@@ -198,7 +198,7 @@ def main():
         BotCommand("help",          "Show help message"),
         BotCommand("get_devices",   help_msgs["get_devices"]),
         BotCommand("get_alarms",    help_msgs["get_alarms"]),
-        BotCommand("remove_alarm",  help_msgs["remove_alarms"]),
+        BotCommand("remove_alarm",  help_msgs["remove_alarm"]),
         BotCommand("add_alarm",     help_msgs["add_alarm"]),
         BotCommand("trigger_alarm", help_msgs["trigger_alarm"]),
         BotCommand("stop_alarm",    help_msgs["stop_alarm"]),
