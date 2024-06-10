@@ -19,11 +19,34 @@
                             <div class="d-flex flex-row">
 
                                 <div class="p-2 align-content-center">
-                                    <label for={{ x.name }}> Sampling rate</label>
+                                    <label> Sampling rate</label>
                                 </div>
                                 <div class="p-2">
-                                    <input type="text" class="form-control" id={{ x.name }} name={{ x.name }}
+                                    <input type="text" class="form-control" name="sampling_rate"
                                         placeholder={{ x.sampling_rate }}>
+                                </div>
+                                <input type="hidden" name="device_id" value="{{ x.name }}">
+
+                                <div class="p-2">
+                                    <button type="submit" class="btn btn-primary">Update</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <form action="{{ url_for('home_blueprint.update_city') }}" method="POST">
+                            <div class="d-flex flex-row">
+
+                                <div class="p-2 align-content-center">
+                                    <label>Device city</label>
+                                </div>
+                                <div class="p-2">
+                                    <input type="text" class="form-control" name="city"
+                                        placeholder={{ x.city }}>
+                                </div>
+                                <input type="hidden" name="device_id" value="{{ x.name }}">
+
+                                <div class="p-2 align-content-center">
+                                    <label>Weather: {{ x.weather }}</label>
                                 </div>
 
                                 <div class="p-2">

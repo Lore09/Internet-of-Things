@@ -2,7 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-from apps import registered_devices, mqtt_client, influx, alarm_scheduler
+from apps import registered_devices, mqtt_client, influx, alarm_scheduler, weather_checker
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required, current_user
@@ -171,9 +171,9 @@ def remove_alarm():
 def update_sampling_rate():
     data = request.form.to_dict()
 
-    name = list(data.keys())[0]
-    sampling_rate = int(data[name])
-
+    name = data['device_id']
+    sampling_rate = data['sampling_rate']
+    
     # update the sampling rate of the device
     for device in registered_devices:
         if device['name'] == name:
@@ -185,6 +185,22 @@ def update_sampling_rate():
 
     return redirect(url_for('home_blueprint.devices')) 
 
+@blueprint.route('/api/city', methods=['POST'])
+def update_city():
+    data = request.form.to_dict()
+
+    name = data['device_id']
+    city = data['city']
+    
+    # update the sampling rate of the device
+    for device in registered_devices:
+        if device['name'] == name:
+            device['city'] = city
+            break
+    
+    weather_checker.update_weather()
+
+    return redirect(url_for('home_blueprint.devices')) 
 
 @blueprint.route('/api/trigger_alarm', methods=['POST'])
 def trigger_alarm():

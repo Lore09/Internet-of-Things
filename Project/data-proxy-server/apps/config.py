@@ -43,6 +43,10 @@ class Config(object):
 
     ALARMS_FILE         = os.getenv('ALARMS_FILE', 'alarms.yaml')
     APP_DATA_PATH       = os.getenv('APP_DATA_PATH', './data/')
+    
+    # Weather API
+    WEATHER_API_KEY     = os.getenv('WEATHER_API_KEY', None)
+    WEATHER_API_URL     = os.getenv('WEATHER_API_URL', 'http://api.openweathermap.org/data/2.5/weather?')
 
     # try to set up a Relational DBMS
     if DB_ENGINE and DB_NAME and DB_USERNAME:
