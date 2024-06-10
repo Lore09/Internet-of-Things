@@ -118,11 +118,12 @@ def parse_trigger_msg(message, help_msgs, URL_REQUEST):
     text = ""
     splitted_msg = message.split(" ")
 
-    if len(splitted_msg != 2):
+    if len(splitted_msg) != 2:
         # check message length
         text = "Error: the message doesn't contain the correct info\n" + help_msgs["trigger_alarm"]
     
     else:
+        device_id = splitted_msg[1]
         status_code = query_trigger(URL_REQUEST, device_id)
 
         if status_code == 200:
@@ -137,11 +138,12 @@ def parse_stop_msg(message, help_msgs, URL_REQUEST):
     text = ""
     splitted_msg = message.split(" ")
 
-    if len(splitted_msg != 2):
+    if len(splitted_msg) != 2:
         # check message length
         text = "Error: the message doesn't contain the correct info\n" + help_msgs["trigger_alarm"]
     
     else:
+        device_id = splitted_msg[1]
         status_code = query_stop(URL_REQUEST, device_id)
 
         if status_code == 200:

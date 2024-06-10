@@ -67,6 +67,8 @@ def fetch_alarms(URL_REQUEST):
             formatted_message += f"ID: {item['device_id']}\n"
             formatted_message += "Timestamps:\n"
             
+            num_alarm = 1
+
             for alarm in item["alarms"]:
                 days = alarm.get("days", None)
 
@@ -85,17 +87,19 @@ def fetch_alarms(URL_REQUEST):
 
                     # Format the datetime object to a readable string
                     formatted_timestamp = datetime_obj.strftime(date_format)
-                    formatted_message += f"  - {formatted_timestamp}\n"
+                    formatted_message += f"  {num_alarm}. {formatted_timestamp}\n"
                 else:
                     # process the alarm with periodicity
 
-                    formatted_message += "  - "
+                    formatted_message += f"  {num_alarm}. "
                     for day in days:
                         # add the periodic days
                         formatted_message += f"{day_mapping.get_day_from_num(day)} "
                     
                     # add the time
                     formatted_message += f"at {alarm['time']}\n"
+
+                num_alarm += 1
                     
 
             formatted_message += "\n"
