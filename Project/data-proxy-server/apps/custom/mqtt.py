@@ -63,7 +63,7 @@ class MQTTClient:
                 print(f"Error: {e}")
                 return
             if not any(d['name'] == device['name'] for d in self.registered_devices):
-                self.registered_devices.append({'name': device['name'], 'sampling_rate': 5})
+                self.registered_devices.append({'name': device['name'], 'sampling_rate': device['sampling_rate']})
 
     def run(self):
         self.client = self.connect_mqtt()

@@ -109,6 +109,18 @@ def alarms():
 def add_alarm_page():
     return render_template('pages/new_alarm.html', devices=registered_devices)
 
+@blueprint.route('/api/get_alarms', methods=['GET'])
+def get_alarms():
+    
+    
+    data = {
+        'devices': alarm_scheduler.get_alarms()
+    }
+    resp = make_response(data, 200)
+    resp.headers['Content-Type'] = 'application/json'
+    
+    return resp
+
 @blueprint.route('/api/add_alarm', methods=['POST'])
 def add_alarm():
     data = request.json
@@ -130,7 +142,12 @@ def add_alarm():
 def remove_alarm():
     
     data = request.form.to_dict()
-    alarm_scheduler.remove_alarm(data["device_id"], data["time"])
+
+    if 'date' in data and data['date'] != '':
+        alarm_scheduler.remove_alarm(device_id=data["device_id"], time=data["time"], date=data["date"], days=None)
+    else:
+        days = data["days"].replace("'","").strip('][').split(', ')
+        alarm_scheduler.remove_alarm(device_id=data["device_id"], time=data["time"], days=days, date=None)
     
     return redirect(url_for('home_blueprint.alarms'))
 
@@ -176,7 +193,7 @@ def get_sensor_data():
 
         with influx.client.write_api() as write_api:
 
-            print(request.form.to_dict())
+            print(f'Recived sensor data: {request.form.to_dict()}')
 
             client_id = request.form.get('client_id')
             sensor_data = request.form.get('data')
