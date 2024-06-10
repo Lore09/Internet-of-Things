@@ -1,6 +1,50 @@
 import requests
 from datetime import datetime
 
+map_days = {
+    "1": "MO",
+    "2": "TU",
+    "3": "WE",
+    "4": "TH",
+    "5": "FR",
+    "6": "SA",
+    "7": "SU",
+}
+
+def fetch_devices(URL_REQUEST):
+    """
+    function that do the http request and returns 
+    - a formatted text that could be sent by the bot
+    - a list of devices ids
+    """
+
+    text = ""
+    device_names = []
+
+    try:
+        response = requests.get(f"{URL_REQUEST}/api/devices")
+        # Raise an error for bad responses (4xx and 5xx)
+        response.raise_for_status()
+        # Parse the JSON response
+        data = response.json()
+
+        print(data)
+        devices = data["devices"]
+
+        for device in devices:
+            name = device["name"]
+            device_names.append(name)
+
+        text = "The devices are \n"
+        for name in device_names:
+            text += f"{name}\n"
+
+    except requests.exceptions.RequestException as e:
+        text = f"An error occurred while fetching data {e}"
+
+    return text, device_names
+
+
 def fetch_alarms(URL_REQUEST):
     """
     function that do the http request and returns
@@ -12,11 +56,9 @@ def fetch_alarms(URL_REQUEST):
     data = None
 
     try:
-        response = requests.get(f"{URL_REQUEST}/api/get_alarms")
-
+        response = requests.get(f"{URL_REQUEST}/api/alarms")
         # Raise an error for bad responses (4xx and 5xx)
         response.raise_for_status()
-
         # Parse the JSON response
         data = response.json()
         
@@ -27,23 +69,49 @@ def fetch_alarms(URL_REQUEST):
         formatted_message = "Data received:\n\n"
         
         # Process each id and its timestamps
+        data = data["devices"]
+
         for item in data:
-            formatted_message += f"ID: {item['id']}\n"
+            formatted_message += f"ID: {item['device_id']}\n"
             formatted_message += "Timestamps:\n"
             
-            for timestamp in item['timestamps']:
-                # Convert the timestamp to a datetime object
-                dt = datetime.fromisoformat(timestamp.rstrip('Z'))
-                # Format the datetime object to a readable string
-                formatted_timestamp = dt.strftime(date_format)
-                formatted_message += f"  - {formatted_timestamp}\n"
+            for alarm in item["alarms"]:
+                days = alarm.get("days", None)
+
+                if days is None:
+                    # process the alarm without periodicity
+
+                    # Extract date and time
+                    date_str = alarm["date"]
+                    time_str = alarm["time"]
+
+                    # Combine date and time into a single string
+                    datetime_str = date_str + " " + time_str
+
+                    # Parse the combined string into a datetime object
+                    datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
+
+                    # Format the datetime object to a readable string
+                    formatted_timestamp = datetime_obj.strftime(date_format)
+                    formatted_message += f"  - {formatted_timestamp}\n"
+                else:
+                    # process the alarm with periodicity
+                    
+                    formatted_message += "  - "
+                    for day in days:
+                        # add the periodic days
+                        formatted_message += f"{map_days[day]} "
+                    
+                    # add the time
+                    formatted_message += f"at {alarm['time']}\n"
+                    
 
             formatted_message += "\n"
         
         text = formatted_message
 
     except requests.exceptions.RequestException as e:
-        text = f"An error occurred while fetching data"
+        text = f"An error occurred while fetching data {e}"
 
     return text, data
 
@@ -52,4 +120,22 @@ def fetch_alarms(URL_REQUEST):
 def query_remove(URL_REQUEST, device_id, alarm_id):
     data = {"device_id": device_id, "time": alarm_id}
     response = requests.post(f"{URL_REQUEST}/api/remove_alarm", data=data)
+    return response.status_code
+
+
+def query_add(URL_REQUEST, device_id, type_add, date):
+    data = {"device_id": device_id, "date": date}
+    response = requests.post(f"{URL_REQUEST}/api/add_alarm", data=data)
+    return response.status_code
+
+
+def query_trigger(URL_REQUEST, device_id):
+    data = {"device_id": device_id}
+    response = requests.post(f"{URL_REQUEST}/api/trigger_alarm", data=data)
+    return response.status_code
+
+
+def query_stop(URL_REQUEST, device_id):
+    data = {"device_id": device_id}
+    response = requests.post(f"{URL_REQUEST}/api/stop_alarm", data=data)
     return response.status_code

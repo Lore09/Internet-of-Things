@@ -2,7 +2,8 @@ import logging
 import os
 from dotenv import load_dotenv
 
-from query import fetch_alarms
+from query import *
+from parse_msg import *
 
 from telegram import Update, BotCommand
 from telegram.ext import Updater, filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
@@ -18,19 +19,30 @@ logging.basicConfig(
 
 
 help_msgs = {
-            "start": "I'm a bot that can help you to handle the alarms",
+            "start"         : "I'm a bot that can help you to handle the alarms",
 
-            "help": "show this message",
+            "help"          : "show this message",
+
+            "get_devices"   : "returns all the devices",
             
-            "get_alarms": "returns all the alarms",
+            "get_alarms"    : "returns all the alarms",
             
             "remove_alarms" : """remove an alarm given:
-                                - Device ID
-                                - Alarm ID
+                                - device ID
+                                - alarm ID
                         Example: /remove_alarm 1 1
             """,
             
+            "add_alarm"     : """add a new alarm given
+                                - device ID
+                                - string representing the datime object, composed as:
+                                day-month-year-hour-minute (all integers)
+                        Example: /add_alarm 1 10-6-2024-8-00
+            """,
 
+            "trigger_alarm" : "trigger an alrm given the device ID",
+
+            "stop_alarm"    : "stop an alarm given the device ID"
 }
 
 
@@ -38,13 +50,19 @@ help_text = f"""{help_msgs["start"]}
     
 Commands:
     
-**/help**            {help_msgs["help"]}
+/help           {help_msgs["help"]}
+
+/get_devices    {help_msgs["get_devices"]}
     
-**/get_alarms**      {help_msgs["get_alarms"]}
+/get_alarms     {help_msgs["get_alarms"]}
     
-**/remove_alarm**    {help_msgs["remove_alarms"]}
+/remove_alarm   {help_msgs["remove_alarms"]}
     
-**/add_alarm**
+/add_alarm      {help_msgs["add_alarm"]}
+
+/trigger_alarm  {help_msgs["trigger_alarm"]}
+
+/stop_alarm     {help_msgs["stop_alarm"]}
 """
 
 
@@ -69,6 +87,15 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #     )
 
 
+async def get_devices(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text, _ = fetch_devices(URL_REQUEST)
+    # Sending text
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=text
+    )
+
+
 async def get_alarms(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text, _ = fetch_alarms(URL_REQUEST) 
     # Sending text
@@ -79,32 +106,8 @@ async def get_alarms(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def remove_alarm(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = ""
-
     message = update.message.text
-    splitted_msg = message.split(" ")
-    
-    if len(splitted_msg) != 3:
-        # check message length
-        text="Error: the message doesn't contain the correct information\n" + help_msgs["remove_alarm"]
-    
-    else:
-        try:
-            device_id   = int(splitted_msg[1])
-            alarm_id    = int(splitted_msg[2])
-
-            status_code = query_remove(URL_REQUEST, device_id, alarm_id)
-
-            if status_code == 200:
-                text = "Done!"
-            else:
-                text = "Sorry, there is an internal error"
-
-        except ValueError: 
-            text = """
-            Error: the message doesn't contain the correct information
-            The two numbers must be integer\n""" + help_msgs["remove_alarm"]
-    
+    text = parse_remove_msg(message, help_msgs, URL_REQUEST)
     # send response
     await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
@@ -112,6 +115,34 @@ async def remove_alarm(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
 
+async def add_alarm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message.text
+    text = parse_add_msg(message, help_msgs, URL_REQUEST)
+    # send response
+    await context.bot.send_message(
+                chat_id=update.effective_chat.id, 
+                text=text
+            )
+            
+
+async def trigger_alarm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message.text
+    text = parse_trigger_msg(message, help_msgs, URL_REQUEST)
+    # send response
+    await context.bot.send_message(
+                chat_id=update.effective_chat.id, 
+                text=text
+            )
+
+
+async def stop_alarm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message.text
+    text = parse_stop_msg(message, help_msgs, URL_REQUEST)
+    # send response
+    await context.bot.send_message(
+                chat_id=update.effective_chat.id, 
+                text=text
+            )
 
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -134,11 +165,23 @@ def main():
     # echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
     # application.add_handler(echo_handler)
 
+    get_devices_handler = CommandHandler('get_devices', get_devices)
+    application.add_handler(get_devices_handler)
+
     get_alarms_handler = CommandHandler('get_alarms', get_alarms)
     application.add_handler(get_alarms_handler)
 
     remove_alarm_handler = CommandHandler('remove_alarm', remove_alarm)
     application.add_handler(remove_alarm_handler)
+
+    add_alarm_handler = CommandHandler('add_alarm', add_alarm)
+    application.add_handler(add_alarm_handler)
+
+    trigger_alarm_handler = CommandHandler('trigger_alarm', trigger_alarm)
+    application.add_handler(trigger_alarm_handler)
+
+    stop_alarm_handler = CommandHandler('stop_alarm', stop_alarm)
+    application.add_handler(stop_alarm_handler)
 
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
@@ -146,10 +189,14 @@ def main():
     
     # Set up the command menu (is not working?)
     commands = [
-        BotCommand("start", "Start the bot"),
-        BotCommand("help", "Show help message"),
-        BotCommand("get_alarms", "Start the bot"),
-        BotCommand("remove_alarm", "Show help message"),
+        BotCommand("start",         "Start the bot"),
+        BotCommand("help",          "Show help message"),
+        BotCommand("get_devices",   help_msgs["get_devices"]),
+        BotCommand("get_alarms",    help_msgs["get_alarms"]),
+        BotCommand("remove_alarm",  help_msgs["remove_alarms"]),
+        BotCommand("add_alarm",     help_msgs["add_alarm"]),
+        BotCommand("trigger_alarm", help_msgs["trigger_alarm"]),
+        BotCommand("stop_alarm",    help_msgs["stop_alarm"]),
     ]
     application.bot.set_my_commands(commands)
 
