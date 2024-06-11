@@ -70,6 +70,11 @@ spec:
             secretKeyRef:
               name: data-proxy-secret
               key: influxdb-token
+        - name: WEATHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: openweather-api-key
         volumeMounts:
         - name: data-proxy-volume
           mountPath: /app/data

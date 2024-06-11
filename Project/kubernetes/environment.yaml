@@ -10,6 +10,7 @@ data:
   MQTT_BROKER_ADDRESS: rebus.ninja
   MQTT_BROKER_PORT: "1883"
   APP_DATA_PATH: /app/data
+  WEATHER_API_URL: "http://api.openweathermap.org/data/2.5/weather?"
 kind: ConfigMap
 metadata:
   name: data-proxy-config
@@ -25,3 +26,4 @@ data:
   mqtt-username: your-user-base64
   mqtt-password: your-password-base64
   influxdb-token: your-influxdb-token-base64
+  openweather-api-key: your-openweather-api-key-base64
