@@ -11,66 +11,76 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h2>Device: {{ x.name }}</h2>
+                        <h2>Device: {{ x.device_id }}</h2>
                     </div>
                     <div class="card-body">
 
-                        <form action="{{ url_for('home_blueprint.update_sampling_rate') }}" method="POST">
-                            <div class="d-flex flex-row">
+                        <div class="d-flex flex-row justify-content-between">
+                            <div class="p-2 align-content-center">
 
-                                <div class="p-2 align-content-center">
-                                    <label> Sampling rate</label>
-                                </div>
-                                <div class="p-2">
-                                    <input type="text" class="form-control" name="sampling_rate"
-                                        placeholder={{ x.sampling_rate }}>
-                                </div>
-                                <input type="hidden" name="device_id" value="{{ x.name }}">
+                                <form action="{{ url_for('home_blueprint.update_sampling_rate') }}" method="POST">
+                                    <div class="d-flex flex-row">
 
-                                <div class="p-2">
-                                    <button type="submit" class="btn btn-primary">Update</button>
+                                        <div class="p-2 align-content-center">
+                                            <label> Sampling rate</label>
+                                        </div>
+                                        <div class="p-2">
+                                            <input type="text" class="form-control" name="sampling_rate" placeholder={{
+                                                x.sampling_rate }}>
+                                        </div>
+                                        <input type="hidden" name="device_id" value="{{ x.device_id }}">
+
+                                        <div class="p-2">
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <form action="{{ url_for('home_blueprint.update_city') }}" method="POST">
+                                    <div class="d-flex flex-row">
+
+                                        <div class="p-2 align-content-center">
+                                            <label>Device city</label>
+                                        </div>
+                                        <div class="p-2">
+                                            <input type="text" class="form-control" name="city" placeholder={{ x.city
+                                                }}>
+                                        </div>
+                                        <input type="hidden" name="device_id" value="{{ x.device_id }}">
+
+                                        <div class="p-2">
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div class="d-flex flex-row">
+
+                                    <form action="{{ url_for('home_blueprint.trigger_alarm') }}" method="POST">
+                                        <div class="p-2">
+                                            <input type="hidden" name="device_id" value="{{ x.device_id }}">
+                                            <button type="submit" class="btn btn-primary">Trigger alarm</button>
+                                        </div>
+                                    </form>
+
+                                    <form action="{{ url_for('home_blueprint.stop_alarm') }}" method="POST">
+                                        <div class="p-2">
+                                            <input type="hidden" name="device_id" value="{{ x.device_id }}">
+                                            <button type="submit" class="btn btn-primary"> Stop alarm</button>
+                                        </div>
+                                    </form>
                                 </div>
+
                             </div>
-                        </form>
+                            <div class="p-2 align-content-center">
 
-                        <form action="{{ url_for('home_blueprint.update_city') }}" method="POST">
-                            <div class="d-flex flex-row">
+                                <img src="https://openweathermap.org/img/wn/{{x.icon}}@2x.png" class="rounded float-left" alt="" 
+                                style="display: block; height: 150pt;">
 
-                                <div class="p-2 align-content-center">
-                                    <label>Device city</label>
-                                </div>
-                                <div class="p-2">
-                                    <input type="text" class="form-control" name="city"
-                                        placeholder={{ x.city }}>
-                                </div>
-                                <input type="hidden" name="device_id" value="{{ x.name }}">
-
-                                <div class="p-2 align-content-center">
-                                    <label>Weather: {{ x.weather }}</label>
-                                </div>
-
-                                <div class="p-2">
-                                    <button type="submit" class="btn btn-primary">Update</button>
-                                </div>
                             </div>
-                        </form>
-
-                        <div class="d-flex flex-row">
-
-                            <form action="{{ url_for('home_blueprint.trigger_alarm') }}" method="POST">
-                                <div class="p-2">
-                                    <input type="hidden" name="device_id" value="{{ x.name }}">
-                                    <button type="submit" class="btn btn-primary">Trigger alarm</button>
-                                </div>
-                            </form>
-
-                            <form action="{{ url_for('home_blueprint.stop_alarm') }}" method="POST">
-                                <div class="p-2">
-                                    <input type="hidden" name="device_id" value="{{ x.name }}">
-                                    <button type="submit" class="btn btn-primary"> Stop alarm</button>
-                                </div>
-                            </form>
                         </div>
+
+
 
                     </div>
                 </div>

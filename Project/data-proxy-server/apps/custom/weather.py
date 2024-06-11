@@ -15,8 +15,9 @@ class WeatherChecker:
         for device in self.devices:
             if device['city'] == '':
                 continue
-            weather_data = self.get_weather(device['city'])
+            weather_data, icon = self.get_weather(device['city'])
             device['weather'] = weather_data
+            device['icon'] = icon
         
     def get_weather(self, city):
         
@@ -25,5 +26,7 @@ class WeatherChecker:
         json_data = requests.get(complete_url).json()
         
         if json_data["cod"] != "404":
+            
+            weather = json_data["weather"][0]
                 
-            return json_data["weather"][0]["main"]
+            return weather["main"], weather["icon"]

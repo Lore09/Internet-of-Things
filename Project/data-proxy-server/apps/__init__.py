@@ -113,7 +113,7 @@ def init_tasks(app):
     atexit.register(lambda: scheduler.shutdown())
 
     alarms_path =   os.path.join(app.config.get('APP_DATA_PATH'),app.config.get('ALARMS_FILE'))
-    alarm_scheduler.load_alarms(alarms_path)
+    alarm_scheduler.init_alarms(alarms_path, registered_devices)
 
     scheduler.add_job(
         func=alarm_scheduler.check_alarms,
