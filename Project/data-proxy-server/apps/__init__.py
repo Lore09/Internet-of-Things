@@ -12,9 +12,11 @@ from importlib import import_module
 from apps.custom.mqtt import MQTTClient, MQTTConfig
 from apps.custom.influx import Influx
 from apps.custom.alarm import AlarmScheduler
+from apps.custom.weather import WeatherChecker
 from flask_cdn import CDN
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
+from datetime import datetime
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -27,6 +29,8 @@ influx = Influx()
 
 scheduler = BackgroundScheduler()
 alarm_scheduler = AlarmScheduler()
+
+weather_checker = WeatherChecker()
 
 def register_extensions(app):
     db.init_app(app)
@@ -94,6 +98,14 @@ def configure_influxdb(app):
     influx.set_influx_client(url=url, token=token, org=org, bucket=bucket)
 
     print('> INFLUXDB - ' + influx.client.health().to_str())
+    
+def configure_weather(app):
+
+    # get the weather API key
+    api_key = app.config.get('WEATHER_API_KEY')
+    api_url = app.config.get('WEATHER_API_URL')
+
+    weather_checker.init_app(api_key, api_url, registered_devices)
 
 def init_tasks(app):
 
@@ -101,13 +113,21 @@ def init_tasks(app):
     atexit.register(lambda: scheduler.shutdown())
 
     alarms_path =   os.path.join(app.config.get('APP_DATA_PATH'),app.config.get('ALARMS_FILE'))
-    alarm_scheduler.load_alarms(alarms_path)
+    alarm_scheduler.init_alarms(alarms_path, registered_devices)
 
     scheduler.add_job(
         func=alarm_scheduler.check_alarms,
         trigger="interval",
         seconds=30)
     print('> SCHEDULER - Alarms scheduled to check every 30 seconds')
+    
+    scheduler.add_job(
+        func=weather_checker.update_weather,
+        trigger="interval",
+        hours=1,
+        next_run_time=datetime.now())
+    
+    print('> SCHEDULER - Weather scheduled to update every hour')
 
     # Start the scheduler
     scheduler.start()
@@ -127,6 +147,7 @@ def create_app(config):
     configure_database(app)
     configure_mqtt(app)
     configure_influxdb(app)
+    configure_weather(app)
     init_tasks(app)
 
     if not DEBUG and 'CDN_DOMAIN' in app.config:

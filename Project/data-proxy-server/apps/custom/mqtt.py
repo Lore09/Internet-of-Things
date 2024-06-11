@@ -58,12 +58,21 @@ class MQTTClient:
             
             try:
                 device = eval(message.payload.decode())
-                print(device)
+                
             except Exception as e:
                 print(f"Error: {e}")
                 return
-            if not any(d['name'] == device['name'] for d in self.registered_devices):
-                self.registered_devices.append({'name': device['name'], 'sampling_rate': device['sampling_rate']})
+            if not any(d['device_id'] == device['name'] for d in self.registered_devices):
+                
+                device = {
+                    'device_id': device['name'],
+                    'sampling_rate': device['sampling_rate'],
+                    'city': '',
+                    'weather': '',
+                    'alarms': []
+                }
+                
+                self.registered_devices.append(device)
 
     def run(self):
         self.client = self.connect_mqtt()

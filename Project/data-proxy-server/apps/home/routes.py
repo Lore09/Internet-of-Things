@@ -2,7 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-from apps import registered_devices, mqtt_client, influx, alarm_scheduler
+from apps import registered_devices, mqtt_client, influx, alarm_scheduler, weather_checker
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required, current_user
@@ -171,27 +171,64 @@ def remove_alarm():
 def update_sampling_rate():
     data = request.form.to_dict()
 
-    name = list(data.keys())[0]
-    sampling_rate = int(data[name])
-
+    device_id = data['device_id']
+    sampling_rate = data['sampling_rate']
+    
     # update the sampling rate of the device
     for device in registered_devices:
-        if device['name'] == name:
+        if device['device_id'] == device_id:
             device['sampling_rate'] = sampling_rate
             break
 
     # send the new sampling rate to the device
-    mqtt_client.publish(f'sampling_rate: {sampling_rate}', f'devices/{name}')
+    mqtt_client.publish(f'sampling_rate: {sampling_rate}', f'devices/{device_id}')
 
     return redirect(url_for('home_blueprint.devices')) 
 
+@blueprint.route('/api/city', methods=['POST'])
+def update_city():
+    data = request.form.to_dict()
+
+    device_id = data['device_id']
+    city = data['city']
+    
+    # update the sampling rate of the device
+    for device in registered_devices:
+        if device['device_id'] == device_id:
+            device['city'] = city
+            break
+    
+    weather_checker.update_weather()
+    
+    alarm_scheduler.save_alarms()
+
+    return redirect(url_for('home_blueprint.devices')) 
 
 @blueprint.route('/api/trigger_alarm', methods=['POST'])
 def trigger_alarm():
-    device = request.form.to_dict()['device_id']
-
-    mqtt_client.publish('trigger_alarm', f'devices/{device}')
+    device_id = request.form.to_dict()['device_id']
     
+    device = None
+    # get device from registered devices
+    for dev in registered_devices:
+        if dev['device_id'] == device_id:
+            device = dev
+            break
+    
+    if device is None:
+        return make_response('Device not found', 404)
+    
+    if 'weather' in device:
+        
+        if device['weather'] == 'Clear':
+            mqtt_client.publish('trigger_alarm 0', f'devices/{device_id}')
+        elif device['weather'] == 'Clouds' or device['weather'] == 'Mist':
+            mqtt_client.publish('trigger_alarm 1', f'devices/{device_id}')
+        elif device['weather'] == 'Rain' or device['weather'] == 'Drizzle' or device['weather'] == 'Thunderstorm':
+            mqtt_client.publish('trigger_alarm 2', f'devices/{device_id}')
+    else:
+        mqtt_client.publish('trigger_alarm', f'devices/{device_id}')
+
     if current_user.is_anonymous:
         return make_response('OK', 200)
     else:

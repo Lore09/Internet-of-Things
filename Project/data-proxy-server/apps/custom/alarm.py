@@ -8,39 +8,43 @@ class AlarmScheduler():
     def __init__(self):
         super().__init__()
     
-    def load_alarms(self, alarms_path):
+    def init_alarms(self, alarms_path, registered_devices):
         # load alarms from file
         self._alarms_path = alarms_path
+        self.registered_devices = registered_devices
 
         # create if not present
         if not os.path.exists(self._alarms_path):
-            with open(self._alarms_path, 'w') as file:
-                yaml.dump({'devices': []}, file)
+            self.save_alarms()
 
+        self.reload_alarms()
+            
+    def reload_alarms(self):
+        
+        # clear existing alarms
+        self.registered_devices.clear()
+        
         with open(self._alarms_path, 'r') as file:
             alarms = yaml.load(file, Loader=yaml.FullLoader)
-            self._alarms = alarms
+            self.registered_devices.extend(alarms['devices'])
 
     def get_alarms(self):
-        self.load_alarms(self._alarms_path)
-        return self._alarms['devices']
+        self.reload_alarms()
+        return self.registered_devices
     
     def add_alarm(self, device_id, alarm):
 
-        for entry in self._alarms['devices']:
+        for entry in self.registered_devices:
             if entry['device_id'] == device_id:
                 entry['alarms'].append(alarm)
                 self.save_alarms()
                 return
-            
-        self._alarms['devices'].append({'device_id': device_id, 'alarms': [alarm]})
-        self.save_alarms()
     
     def remove_alarm(self, device_id, time, date, days):
 
         print(f'Removing alarm for device {device_id} at {time} {date} {days}')
         
-        for device in self._alarms['devices']:
+        for device in self.registered_devices:
 
             if device['device_id'] == device_id:
                 for entry in device['alarms']:
@@ -59,19 +63,23 @@ class AlarmScheduler():
 
     def save_alarms(self):
         with open(self._alarms_path, 'w') as file:
-            yaml.dump(self._alarms, file)
+            yaml.dump({'devices': self.registered_devices}, file)
 
     def trigger_alarm(self, device_id, alarm):
         print(f'Alarm triggered for device {device_id}: {alarm}')
+        
+        data = {
+            'device_id': device_id
+        }
 
-        requests.post("http://127.0.0.1:5000/api/trigger_alarm", data={device_id: alarm})
+        requests.post("http://127.0.0.1:5000/api/trigger_alarm", data=data)
 
 
     def check_alarms(self):
         
         now = datetime.datetime.now().replace(second=0, microsecond=0)
 
-        for entry in self._alarms['devices']:
+        for entry in self.registered_devices:
             for alarm in entry['alarms']:
                 
                 alarm_time = datetime.datetime.strptime(alarm['time'], '%H:%M').time()
