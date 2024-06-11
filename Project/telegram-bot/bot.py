@@ -2,8 +2,8 @@ import logging
 import os
 from dotenv import load_dotenv
 
-from query import *
-from parse_msg import *
+from process_query.query import *
+from process_query.parse_msg import *
 
 from telegram import Update, BotCommand
 from telegram.ext import Updater, filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes

@@ -1,6 +1,6 @@
 from datetime import datetime
-from query import *
-from day_mapping import DayMapping
+from process_query.query import *
+from process_query.day_mapping import DayMapping
 day_mapping = DayMapping()
 
 

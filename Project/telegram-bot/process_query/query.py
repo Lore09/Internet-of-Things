@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime
-from day_mapping import DayMapping
+from process_query.day_mapping import DayMapping
 day_mapping = DayMapping()
 
 def fetch_devices(URL_REQUEST):
