@@ -16,17 +16,35 @@ def get_resleep_minutes(InfluxDB, names, pillow_weight, head_weight, how_many_mi
     df_pressure_data = read_data_with_time_period(InfluxDB, names, start_time)
 
     sleep_duration, sleep_periods = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
-                                                                min_sleep_duration_minutes=1, time_unit_hour=False)
+                                                                min_sleep_duration_minutes=0, time_unit_hour=False)
 
     return sleep_duration
 
+def stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id):
+    
+    while True:
+        time.sleep(5)
+        # check if sleep
+        last_10_Sec= read_data_with_time_period(InfluxDB, names, "-10s")
+        sleep_duration, sleep_periods = detect_sleep_periods(last_10_Sec, names, pillow_weight, head_weight, \
+                                                                    min_sleep_duration_minutes=0, time_unit_hour=False)
+        
+        sleep_duration = sleep_duration * 60
+        
+        if sleep_duration < 4.0:
+            requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id))
+            return
 
-def repeat_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, alarm, how_many_minutes=5):
+def repeat_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, how_many_minutes=5):
     woke_up = False
 
     # increase the sampling rate
-    new_sampling_rate = 10
-    requests.post("http://127.0.0.1:5000/form", data={device_id: new_sampling_rate})
+    new_sampling_rate = 2
+    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
+    
+    stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id)
+    
+    woke_up = False
     
     while not woke_up:
         time.sleep(how_many_minutes * 60)
@@ -40,17 +58,18 @@ def repeat_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id,
             woke_up = True
         else:
             # otherwise trigger alarm again
-            requests.post("http://127.0.0.1:5000/api/trigger_alarm", data={device_id: alarm})
+            requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id))
+            stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id)
          
     # change the sampling rate to the defualt value
     new_sampling_rate = 30
-    requests.post("http://127.0.0.1:5000/form", data={device_id: new_sampling_rate})
+    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
     
 
 
-def create_thread_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, alarm, how_many_minutes=5):
+def create_thread_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, how_many_minutes=5):
     # Create a thread to run the repeated_execution function with parameters
     execution_thread = threading.Thread(target=repeat_until_woke_up, args=(InfluxDB, names, pillow_weight, \
-                                                                            head_weight, device_id, alarm))
+                                                                            head_weight, device_id))
     # Start the thread
     execution_thread.start()

@@ -38,10 +38,12 @@ async def get_sleep_time_for_each_day():
 #     else:
 #         return {"resleep": 0}
 
-@app.get("/analyze/check_resleep")
-async def check_resleep(device_id, alarm):
+@app.get("/analyze/check_sleep")
+async def check_resleep(device_id):
     """
     function that create a thread that check 
     every 5 minutes if the person woke up
     """
-    create_thread_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id, alarm)
+    create_thread_until_woke_up(InfluxDB, names, pillow_weight, head_weight, device_id)
+
+    return {"message": "Checking if the person woke up every 5 minutes"}

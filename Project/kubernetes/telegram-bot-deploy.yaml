@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegram-bot
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegram-bot
+  template:
+    metadata:
+      labels:
+        app: telegram-bot
+    spec:
+      containers:
+      - name: telegram-bot
+        image: docker.io/unibo-iot/python-telegram-bot:latest
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: data-proxy-config
+        env:
+        - name: BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: telegram-bot-token

@@ -8,10 +8,11 @@ class AlarmScheduler():
     def __init__(self):
         super().__init__()
     
-    def init_alarms(self, alarms_path, registered_devices):
+    def init_alarms(self, alarms_path, registered_devices, analysis_server_url):
         # load alarms from file
         self._alarms_path = alarms_path
         self.registered_devices = registered_devices
+        self.analysis_server_url = analysis_server_url
 
         # create if not present
         if not os.path.exists(self._alarms_path):
@@ -73,6 +74,8 @@ class AlarmScheduler():
         }
 
         requests.post("http://127.0.0.1:5000/api/trigger_alarm", data=data)
+        
+        requests.get( self.analysis_server_url + "/api/analyze/check_sleep?device_id=" + device_id )
 
 
     def check_alarms(self):
