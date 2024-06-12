@@ -24,7 +24,7 @@ def fetch_devices(URL_REQUEST):
         devices = data["devices"]
 
         for device in devices:
-            name = device["name"]
+            name = device["device_id"]
             device_names.append(name)
 
         text = "The devices are \n"

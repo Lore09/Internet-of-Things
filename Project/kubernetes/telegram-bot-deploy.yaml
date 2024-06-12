@@ -17,10 +17,9 @@ spec:
       - name: telegram-bot
         image: docker.io/unibo-iot/python-telegram-bot:latest
         imagePullPolicy: Never
-        envFrom:
-          - configMapRef:
-              name: data-proxy-config
         env:
+        - name: URL_REQUEST
+          value: "your-url"
         - name: BOT_TOKEN
           valueFrom:
             secretKeyRef:
