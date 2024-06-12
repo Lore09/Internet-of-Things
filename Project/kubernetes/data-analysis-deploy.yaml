@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-analysis-server
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-analysis-server
+  template:
+    metadata:
+      labels:
+        app: data-analysis-server
+    spec:
+      containers:
+      - name: data-analysis-server
+        image: docker.io/unibo-iot/python-data-analysis-server:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5010
+        envFrom:
+          - configMapRef:
+              name: data-analysis-config
+        env:
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: data-analysis-secret
+              key: influxdb-token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-analysis-service
+  namespace: iot
+  annotations:
+    metallb.universe.tf/allow-shared-ip: iot
+    metallb.universe.tf/ip-allocated-from-pool: first-pool
+spec:
+  selector:
+    app: data-analysis-server
+  ports:
+    - port: 5010
+      targetPort: 5010
+  type: LoadBalancer

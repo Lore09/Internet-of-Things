@@ -1,0 +1,27 @@
+apiVersion: v1
+data:
+  INFLUXDB_URL: "your-influxdb-address"
+  INFLUXDB_BUCKET: your-bucket
+  INFLUXDB_ORG: your-org
+  INFLUXDB_MEASUREMENT: your-measurement
+  INFLUXDB_FIELD: your-field
+  DATA_PROXY_URL: "http://192.168.1.153:5000"
+  DF_PRESSURE_VALUE: your-df-pressure-value
+  DF_FIELD: your-df-field
+  DF_TIME: your-df-time
+  DF_SLEEP_HOURS_DATE: 'your-df-sleep-hours-date'
+  DF_SLEEP_HOURS_H: 'your-df-sleep-hours-h'
+  SLEEP_HOURS_FILE_NAME: "your-sleep-hours-file-name"
+kind: ConfigMap
+metadata:
+  name: data-analysis-config
+  namespace: iot
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: data-analysis-secret
+  namespace: iot
+type: Opaque
+data:
+  influxdb-token: your-influxdb-token-base64
