@@ -47,6 +47,8 @@ class Config(object):
     # Weather API
     WEATHER_API_KEY     = os.getenv('WEATHER_API_KEY', None)
     WEATHER_API_URL     = os.getenv('WEATHER_API_URL', 'http://api.openweathermap.org/data/2.5/weather?')
+    
+    DATA_ANALYSIS_SERVER_URL = os.getenv('DATA_ANALYSIS_SERVER_URL', '')
 
     # try to set up a Relational DBMS
     if DB_ENGINE and DB_NAME and DB_USERNAME:
