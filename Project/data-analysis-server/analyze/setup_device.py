@@ -1,5 +1,6 @@
 import pandas as pd
 import time
+import requests
 from analyze.read_from_db import read_data_with_time_period
 
 """
@@ -16,18 +17,23 @@ to obtain the weight of the head.
 
 
 def compute_weight(InfluxDB, names, device_id):
+
+    headers = {
+    'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
     # start the reproduction on the tone
-    requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id))
+    requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id), headers=headers)
 
     # wait to read the values
     how_many_seconds = 20
     time.sleep(how_many_seconds)
 
     # end the reproduction of the tone
-    requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id))
+    requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id), headers=headers)
 
     # read the data
-    df = read_data_with_time_period(InfluxDB, names, client_id, f"-{how_many_seconds}s")
+    df = read_data_with_time_period(InfluxDB, names, device_id, f"-{how_many_seconds}s")
 
     # compute weight
     weight = sum(df[names.df_pressure_value])/len(df)

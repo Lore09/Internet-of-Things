@@ -209,7 +209,7 @@ def compute_sleep_time_for_each_day(InfluxDB, names, client_id, pillow_weight:in
     # saving the result of the computation to avoid re computing it again
     columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h, names.df_sleep_hours_accuracy]
     df_hours_of_sleep_per_day = pd.DataFrame(hours_of_sleep_per_day, columns=columns_name)
-    df_hours_of_sleep_per_day.to_csv(f"{names.sleep_hours_file_name}_{client_id}.csv")
+    df_hours_of_sleep_per_day.to_csv(f"data/{names.sleep_hours_file_name}_{client_id}.csv")
 
     print("Computed sleep time for each day")
     return hours_of_sleep_per_day

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from analyze.read_from_db import fetch_devices
+from objects.weight_data_manage import WeightDataManager
 
 from analyze.analyze_sleep import compute_sleep_time_for_each_day
 from analyze.analyze_sleep import compute_sleep_time_for_remaining_days
@@ -26,7 +27,7 @@ for device in device_names:
     data = weight_data_manager.get_device_data(device)
     if data is None:
         # do the setup process
-        pillow_weight, head_weight = setup_device(device_id)
+        pillow_weight, head_weight = setup_device(InfluxDB, names, device)
         device_data = {"pillow_weight": pillow_weight, "head_weight": head_weight}
         weight_data_manager.update_device_data(device, device_data)
 
