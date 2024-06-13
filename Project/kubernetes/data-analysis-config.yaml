@@ -11,6 +11,7 @@ data:
   DF_TIME: your-df-time
   DF_SLEEP_HOURS_DATE: 'your-df-sleep-hours-date'
   DF_SLEEP_HOURS_H: 'your-df-sleep-hours-h'
+  DF_SLEEP_HOURS_ACCURACY: 'your-df-sleep-hour-accuracy'
   SLEEP_HOURS_FILE_NAME: "your-sleep-hours-file-name"
 kind: ConfigMap
 metadata:

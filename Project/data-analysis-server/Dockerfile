@@ -18,6 +18,6 @@ ENV TZ="Europe/Rome"
 
 COPY . /data_analysis
 
-EXPOSE 5010
+EXPOSE 8000
 
-CMD ["fastapi", "dev", "app/main.py"]
+CMD ["fastapi", "run", "app/main.py"]
