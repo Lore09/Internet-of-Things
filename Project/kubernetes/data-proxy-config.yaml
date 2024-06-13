@@ -12,7 +12,7 @@ data:
   APP_DATA_PATH: /app/data
   WEATHER_API_URL: "http://api.openweathermap.org/data/2.5/weather?"
   DATA_PROXY_URL: "http://192.168.1.153:5000"
-  ANALYSIS_SERVER_URL: "http://192.168.1.153:5010"
+  DATA_ANALYSIS_SERVER_URL: "http://192.168.1.153:5010"
 kind: ConfigMap
 metadata:
   name: data-proxy-config
