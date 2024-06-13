@@ -75,7 +75,7 @@ class AlarmScheduler():
 
         requests.post("http://127.0.0.1:5000/api/trigger_alarm", data=data)
         
-        requests.get( self.analysis_server_url + "/api/analyze/check_sleep?device_id=" + device_id )
+        requests.get( self.analysis_server_url + "/analyze/check_sleep?device_id=" + device_id )
 
 
     def check_alarms(self):

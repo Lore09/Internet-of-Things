@@ -118,8 +118,8 @@ def init_tasks(app):
     scheduler.add_job(
         func=alarm_scheduler.check_alarms,
         trigger="interval",
-        seconds=30)
-    print('> SCHEDULER - Alarms scheduled to check every 30 seconds')
+        seconds=60)
+    print('> SCHEDULER - Alarms scheduled to check every 60 seconds')
     
     scheduler.add_job(
         func=weather_checker.update_weather,
