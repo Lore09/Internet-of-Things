@@ -15,18 +15,36 @@
         </li>
 
         <li class="pc-item">
-          <a href="/" class="pc-link">
-            <span class="pc-micon"><i class="ti ti-dashboard"></i></span>
-            <span class="pc-mtext">Dashboard</span></a>
+          <a href="/" class="pc-link"><span class="pc-micon"><i class="ti ti-alarm"></i></span><span
+              class="pc-mtext">Alarms</span></a>
+        </li>
+
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.devices') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-section"></i></span><span class="pc-mtext">Devices</span></a>
+        </li>
+
+
+        <li class="pc-item pc-caption">
+          <label>Monitoring</label>
+          <i class="ti ti-apps"></i>
+        </li>
+
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.grafana') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-chart-area-line"></i></span><span class="pc-mtext">Grafana</span></a>
         </li>
 
         <li class="pc-item pc-caption">
-          <label>Pages</label>
+          <label>Settings</label>
           <i class="ti ti-news"></i>
         </li>
+
         <li class="pc-item pc-hasmenu">
-          <a href="#!" class="pc-link"><span class="pc-micon"><i class="ti ti-key"></i></span><span
-              class="pc-mtext">User Pages</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span></a>
+          <a href="#!" class="pc-link">
+            <span class="pc-micon"><i class="ti ti-key"></i></span>
+            <span class="pc-mtext">User Pages</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span>
+          </a>
           <ul class="pc-submenu">
 
             {% if current_user.is_authenticated %}
@@ -40,54 +58,9 @@
 
           </ul>
         </li>
-        <li class="pc-item pc-caption">
-          <label>Elements</label>
-          <i class="ti ti-apps"></i>
-        </li>
 
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.devices') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-section"></i></span><span class="pc-mtext">Devices</span></a>
-        </li>
-
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.alarms') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-alarm"></i></span><span class="pc-mtext">Alarms</span></a>
-        </li>
-
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.typography') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-typography"></i></span><span class="pc-mtext">Typography</span></a>
-        </li>
-
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.color') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-brush"></i></span><span class="pc-mtext">Color</span></a>
-        </li>
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.icon_tabler') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-plant-2"></i></span><span class="pc-mtext">Tabler</span><span class="pc-arrow"></a>
-        </li>
-
-        <li class="pc-item pc-caption">
-          <label>Other</label>
-          <i class="ti ti-brand-chrome"></i>
-        </li>
-        <li class="pc-item">
-          <a href="{{ url_for('home_blueprint.sample_page') }}" class="pc-link"><span class="pc-micon"><i
-                class="ti ti-brand-chrome"></i></span><span class="pc-mtext">Sample page</span></a>
-        </li>
-        <li class="pc-item">
-          <a href="https://github.com/app-generator/flask-berry-dashboard" target="_blank" class="pc-link"><span
-              class="pc-micon"><i class="ti ti-vocabulary"></i></span><span class="pc-mtext">DOCS</span></a>
-        </li>
       </ul>
-      <div class="pc-navbar-card bg-primary rounded">
-        <h4 class="text-white">Berry Bootstrap 5</h4>
-        <p class="text-white opacity-75">Open-Source Theme</p>
-        <a href="https://appseed.us/product/berry-dashboard/flask/" target="_blank"
-          class="btn btn-light text-primary">Download</a>
-      </div>
+
     </div>
   </div>
 </nav>

@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
+
 from apps import registered_devices, mqtt_client, influx, alarm_scheduler, weather_checker
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
@@ -11,27 +9,7 @@ from jinja2 import TemplateNotFound
 @blueprint.route('/index')
 @login_required
 def index():
-    return render_template('pages/index.html', segment='index')
-
-@blueprint.route('/typography')
-@login_required
-def typography():
-    return render_template('pages/typography.html')
-
-@blueprint.route('/color')
-@login_required
-def color():
-    return render_template('pages/color.html')
-
-@blueprint.route('/icon-tabler')
-@login_required
-def icon_tabler():
-    return render_template('pages/icon-tabler.html')
-
-@blueprint.route('/sample-page')
-@login_required
-def sample_page():
-    return render_template('pages/sample-page.html')  
+    return render_template('pages/alarms.html', segment='index')
 
 @blueprint.route('/accounts/password-reset/')
 def password_reset():
@@ -99,6 +77,11 @@ def get_segment(request):
 def devices():
     return render_template('pages/devices.html', cards=registered_devices)
 
+@blueprint.route('/grafana')
+@login_required
+def grafana():
+    return render_template('pages/grafana.html')
+
 @blueprint.route('/api/devices', methods=['GET'])
 def get_devices():
     data = {
@@ -110,6 +93,7 @@ def get_devices():
     
     return resp
 
+@blueprint.route('/')
 @blueprint.route('/alarms')
 @login_required
 def alarms():
