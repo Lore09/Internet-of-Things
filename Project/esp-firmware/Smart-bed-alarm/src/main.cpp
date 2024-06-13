@@ -46,6 +46,8 @@ PubSubClient client(espClient);
 long lastHeartbeat = 0;
 long lastSample = 0;
 long now = 0;
+long httpStartTime = 0;
+long httpTimeTaken = 0;
 String msg;
 
 // NTP client setup
@@ -216,7 +218,7 @@ void loop() {
     
     lastHeartbeat = now;
 
-    msg = "{ \"name\": \"" + String(client_id) + "\", \"sampling_rate\": " + String(samplinge_rate) + "}";
+    msg = "{ \"name\": \"" + String(client_id) + "\", \"sampling_rate\": " + String(samplinge_rate) + ", \"request_time\": " + String(httpTimeTaken) + "}";
 
     Serial.println("Publish message: " + msg + " to topic: devices/heartbeat");
     client.publish("devices/heartbeat", msg.c_str());
@@ -232,7 +234,10 @@ void loop() {
     String content = "client_id=" + String(client_id) + "&data=" + String(data);
     Serial.println("Sending data:\t" + content);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    httpStartTime = millis();
     http.POST(content);
+    httpTimeTaken = millis() - httpStartTime;
     
   }
 
