@@ -82,7 +82,7 @@ def configure_mqtt(app):
     print('> MQTT Client: ' + client_id)
 
     # Create mqtt client
-    mqtt_client.init_client(app, mqtt_config, registered_devices)
+    mqtt_client.init_client(app, mqtt_config, registered_devices, alarm_scheduler)
 
     # Start the client
     mqtt_client.run()

@@ -15,10 +15,11 @@ class MQTTClient:
     def __init__(self):
         super().__init__()
 
-    def init_client(self, app, config, registered_devices):
+    def init_client(self, app, config, registered_devices, alarm_scheduler):
         self.app = app
         self.config = config
         self.registered_devices = registered_devices
+        self.alarm_scheduler = alarm_scheduler
 
     def connect_mqtt(self):
         def on_connect(client, userdata, flags, rc):
@@ -62,17 +63,37 @@ class MQTTClient:
             except Exception as e:
                 print(f"Error: {e}")
                 return
+            
             if not any(d['device_id'] == device['name'] for d in self.registered_devices):
                 
                 device = {
                     'device_id': device['name'],
                     'sampling_rate': device['sampling_rate'],
+                    'request_time': [device['request_time']],
+                    'average_request_time': 0,
                     'city': '',
                     'weather': '',
                     'alarms': []
                 }
                 
                 self.registered_devices.append(device)
+            
+            else:
+                for d in self.registered_devices:
+                    if d['device_id'] == device['name']:
+                        
+                        d['sampling_rate'] = device['sampling_rate']
+                        d['request_time'].append(device['request_time'])
+                        
+                        # keep only the last 10 request times
+                        if len(d['request_time']) >= 10:
+                            d['request_time'].pop(0)
+                            
+                        d['average_request_time'] = round(sum(d['request_time']) / (2 * len(d['request_time'])))
+                        break
+            
+            self.alarm_scheduler.save_alarms()
+            
 
     def run(self):
         self.client = self.connect_mqtt()

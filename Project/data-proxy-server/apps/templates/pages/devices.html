@@ -18,6 +18,16 @@
                         <div class="d-flex flex-row justify-content-between">
                             <div class="p-2 align-content-center">
 
+                                <div class="d-flex flex-row">
+
+                                    <div class="p-2 align-content-center">
+                                        <label> Average request time</label>
+                                    </div>
+                                    <div class="p-2">
+                                        <label>{{ x.average_request_time }} ms</label>
+                                    </div>
+                                </div>
+
                                 <form action="{{ url_for('home_blueprint.update_sampling_rate') }}" method="POST">
                                     <div class="d-flex flex-row">
 
