@@ -9,7 +9,7 @@ from jinja2 import TemplateNotFound
 @blueprint.route('/index')
 @login_required
 def index():
-    return render_template('pages/alarms.html', segment='index')
+    return render_template('pages/alarms.html', cards=alarm_scheduler.get_alarms())
 
 @blueprint.route('/accounts/password-reset/')
 def password_reset():
