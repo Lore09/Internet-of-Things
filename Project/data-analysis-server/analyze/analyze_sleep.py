@@ -23,7 +23,7 @@ def from_df_to_dict(names, df):
 
 
 
-def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, threshold_factor=0.5, min_sleep_duration_minutes=10, time_unit_hour=True):
+def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, threshold_factor=0.5, min_sleep_duration_minutes=10, time_unit='h'):
     """
     Detects the starting and ending points of multiple sleep periods and computes the total number of hours of sleep.
     
@@ -76,11 +76,16 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
     # Calculate the total sleep duration in hours
     total_sleep_duration = sum((end - start).total_seconds() for start, end in sleep_periods)
 
-    if time_unit_hour:
+
+    if time_unit == 'h':
+        # in hours
         total_sleep_duration = total_sleep_duration / 3600
-    else:
+    elif time_unit == 'm':
         # in minutes
         total_sleep_duration = total_sleep_duration / 60
+    elif time_unit == 's':
+        # in seconds
+        pass
     
     return total_sleep_duration, sleep_periods
 

@@ -16,7 +16,7 @@ def get_resleep_minutes(InfluxDB, names, pillow_weight, head_weight, how_many_mi
     df_pressure_data = read_data_with_time_period(InfluxDB, names, start_time)
 
     sleep_duration, sleep_periods = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
-                                                                min_sleep_duration_minutes=0, time_unit_hour=False)
+                                                                min_sleep_duration_minutes=0, time_unit='m')
 
     return sleep_duration
 
@@ -25,11 +25,9 @@ def stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id):
     while True:
         time.sleep(5)
         # check if sleep
-        last_10_Sec= read_data_with_time_period(InfluxDB, names, "-10s")
+        last_10_Sec = read_data_with_time_period(InfluxDB, names, "-10s")
         sleep_duration, sleep_periods = detect_sleep_periods(last_10_Sec, names, pillow_weight, head_weight, \
-                                                                    min_sleep_duration_minutes=0, time_unit_hour=False)
-        
-        sleep_duration = sleep_duration * 60
+                                                                    min_sleep_duration_minutes=0, time_unit='s')
         
         if sleep_duration < 4.0:
             requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id))
@@ -73,3 +71,19 @@ def create_thread_until_woke_up(InfluxDB, names, pillow_weight, head_weight, dev
                                                                             head_weight, device_id))
     # Start the thread
     execution_thread.start()
+
+
+def check_bed_presence(InfluxDB, names, pillow_weight, head_weight, device_id):
+    # read last data from DB
+    df_pressure_data = read_data_with_time_period(InfluxDB, names, "-2m")
+
+    # get the sleeping seconds detected in the time period 
+    sleep_duration, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
+                                min_sleep_duration_minutes=0, time_unit='s')
+
+    if sleep_duration > 30:
+        # presence in bed detected
+        return True
+    else:
+        # presence in bed not detected
+        return False
