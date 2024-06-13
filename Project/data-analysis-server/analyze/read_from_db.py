@@ -1,6 +1,30 @@
 import re
+import requests
 from datetime import datetime
 import pandas as pd
+
+
+def fetch_devices(names):
+    """
+    function that do the http request and returns a list of devices ids
+    """
+    device_names = []
+
+    try:
+        response = requests.get(f"{names.data_proxy_url}/api/devices")
+        # Parse the JSON response
+        data = response.json()
+
+        devices = data["devices"]
+
+        for device in devices:
+            name = device["device_id"]
+            device_names.append(name)
+
+    except requests.exceptions.RequestException as e:
+        pass
+
+    return device_names
 
 
 def validate_time_range(time_range: str) -> bool:
@@ -9,13 +33,14 @@ def validate_time_range(time_range: str) -> bool:
     return bool(pattern.match(time_range))
 
 
-def read_first_value(InfluxDB, names):
+def read_first_value(InfluxDB, names, client_id):
     query_first = f'''
     from(bucket: "{InfluxDB.bucket}")
       |> range(start: -365d)
       |> first()
       |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
       |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+      |> filter(fn: (r) => r.client_id == "{client_id}")
     '''
     
     #establish a connection
@@ -45,13 +70,14 @@ def read_first_value(InfluxDB, names):
 
 
 
-def read_last_value(InfluxDB, names):
+def read_last_value(InfluxDB, names, client_id):
     query_last = f'''
     from(bucket: "{InfluxDB.bucket}")
       |> range(start: -365d)
       |> last()
       |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
       |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+      |> filter(fn: (r) => r.client_id == "{client_id}")
     '''
     
     #establish a connection
@@ -81,7 +107,7 @@ def read_last_value(InfluxDB, names):
 
 
 
-def generate_query_for_time_period(InfluxDB, start_time, end_time: datetime = None):
+def generate_query_for_time_period(InfluxDB, client_id, start_time, end_time: datetime = None):
     
     query = None
 
@@ -96,6 +122,7 @@ def generate_query_for_time_period(InfluxDB, start_time, end_time: datetime = No
                 |> range(start: {start}, stop: {end})
                 |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
                 |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+                |> filter(fn: (r) => r.client_id == "{client_id}")
                 '''
 
     else:
@@ -105,15 +132,16 @@ def generate_query_for_time_period(InfluxDB, start_time, end_time: datetime = No
                     |> range(start: {start_time})
                     |> filter(fn: (r) => r._measurement == "{InfluxDB.measurement}")
                     |> filter(fn: (r) => r._field == "{InfluxDB.field}")
+                    |> filter(fn: (r) => r.client_id == "{client_id}")
                     '''
 
     return query
     
 
 
-def read_data_with_time_period(InfluxDB, names, start_time, end_time: datetime = None):
+def read_data_with_time_period(InfluxDB, names, client_id, start_time, end_time: datetime = None):
 
-    query = generate_query_for_time_period(InfluxDB, start_time, end_time)
+    query = generate_query_for_time_period(InfluxDB, client_id, start_time, end_time)
 
     #establish a connection
     client = InfluxDB.client
