@@ -43,7 +43,7 @@ def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight,
 
     # increase the sampling rate
     new_sampling_rate = 2
-    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
+    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)), headers=headers)
     
     stop_alarm_if_awake(InfluxDB, names, client_id, pillow_weight, head_weight, device_id)
     
@@ -66,8 +66,8 @@ def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight,
             stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id)
          
     # change the sampling rate to the defualt value
-    new_sampling_rate = 30
-    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
+    new_sampling_rate = 20
+    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)), headers=headers)
     
 
 
