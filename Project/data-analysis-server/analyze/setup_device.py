@@ -15,12 +15,11 @@ We will repeat again the procedure a second time but with the person on the bed
 to obtain the weight of the head.
 """
 
+headers = {
+    'Content-Type': 'application/x-www-form-urlencoded'
+}
 
 def compute_weight(InfluxDB, names, device_id):
-
-    headers = {
-    'Content-Type': 'application/x-www-form-urlencoded'
-    }
 
     # start the reproduction on the tone
     requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id), headers=headers)
@@ -46,7 +45,7 @@ def setup_device(InfluxDB, names, device_id):
    
     # increase the sampling rate
     new_sampling_rate = 2
-    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
+    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)), headers=headers)
 
     head_weight = compute_weight(InfluxDB, names, device_id)
 
@@ -56,6 +55,6 @@ def setup_device(InfluxDB, names, device_id):
 
     # reset the sampling rate
     new_sampling_rate = 20
-    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
+    requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)), headers=headers)
 
     return pillow_weight, head_weight
