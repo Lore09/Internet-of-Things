@@ -24,13 +24,13 @@ def compute_weight(InfluxDB, names, device_id):
 
     # start the reproduction on the tone
     requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id), headers=headers)
+    time.sleep(5)
+    # end the reproduction of the tone
+    requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id), headers=headers)
 
     # wait to read the values
     how_many_seconds = 20
     time.sleep(how_many_seconds)
-
-    # end the reproduction of the tone
-    requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id), headers=headers)
 
     # read the data
     df = read_data_with_time_period(InfluxDB, names, device_id, f"-{how_many_seconds}s")
@@ -48,11 +48,11 @@ def setup_device(InfluxDB, names, device_id):
     new_sampling_rate = 2
     requests.post(names.data_proxy_url + "/api/sampling_rate", data=("device_id=" + device_id + "&sampling_rate=" + str(new_sampling_rate)))
 
-    pillow_weight = compute_weight(InfluxDB, names, device_id)
+    head_weight = compute_weight(InfluxDB, names, device_id)
 
     time.sleep(10)
 
-    head_weight = compute_weight(InfluxDB, names, device_id)
+    pillow_weight = compute_weight(InfluxDB, names, device_id)
 
     # reset the sampling rate
     new_sampling_rate = 20

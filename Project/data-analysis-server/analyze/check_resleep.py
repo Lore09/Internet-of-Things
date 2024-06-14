@@ -88,7 +88,7 @@ def check_bed_presence(InfluxDB, names, client_id, pillow_weight, head_weight, d
     sleep_duration, _, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
                                 min_sleep_duration_minutes=0, time_unit='s')
 
-    if sleep_duration > 30:
+    if sleep_duration > 50:
         # presence in bed detected
         return True
     else:

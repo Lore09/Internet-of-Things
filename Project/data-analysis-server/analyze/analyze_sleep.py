@@ -30,7 +30,7 @@ def from_df_to_dict(names, df):
 
 
 
-def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, threshold_factor=0.5, min_sleep_duration_minutes=10, time_unit='h'):
+def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, threshold_factor=0.6, min_sleep_duration_minutes=10, time_unit='h'):
     """
     Detects the starting and ending points of multiple sleep periods and computes the total number of hours of sleep.
     
@@ -38,7 +38,7 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
     - pressure_data: dataframe containing the pressure sensor data
     - pillow_weight: the value returned by the sensor with only the pillow.
     - head_weight: the value returned by the sensor with only the head
-    - threshold_factor: factor to adjust the threshold for detecting head on pillow. Default is 0.5, i.e. it is the mean between the two weights
+    - threshold_factor: factor to adjust the threshold for detecting head on pillow.
     - min_sleep_duration_minutes: minimum duration of a sleep period to be considered valid, in minutes
     - time_unit: string to determine the time unit of total_sleep_duration. Possibilities: 'h', 'm', 's'
     
