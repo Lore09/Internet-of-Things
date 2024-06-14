@@ -63,7 +63,7 @@ def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight,
             # otherwise trigger alarm again
             requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id), headers=headers)
             print("Alarm triggered again")
-            stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id)
+            stop_alarm_if_awake(InfluxDB, names, client_id, pillow_weight, head_weight, device_id)
          
     # change the sampling rate to the defualt value
     new_sampling_rate = 20

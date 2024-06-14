@@ -53,20 +53,22 @@ def create_plot(names, df, end_time):
     lc = LineCollection(segments, colors=df['color'].values, linewidth=2)
     
     # Plotting
-    plt.figure(figsize=(15, 12))
+    plt.figure(figsize=(10, 6))
     plt.gca().add_collection(lc)
     plt.xlim(df['numeric_time'].min(), df['numeric_time'].max())
     plt.ylim(df[names.df_pressure_value].min(), df[names.df_pressure_value].max())
     
     # Convert numeric_time back to Timestamp for x-tick labels
     plt.gca().set_xticks(df['numeric_time'][::len(df)//10])
-    plt.gca().set_xticklabels(df[names.df_time].dt.strftime('%Y-%m-%d %H:%M:%S')[::len(df)//10], rotation=45)
+    plt.gca().set_xticklabels(df[names.df_time].dt.strftime('%H:%M:%S')[::len(df)//10], rotation=45)
 
-    plt.xlabel('Timestamp')
-    plt.ylabel('Pressure values')
-    plt.title('Datapoints with mismatched detections in red')
+    plt.xlabel('Timestamp')#, fontsize=26)
+    plt.ylabel('Pressure values')#, fontsize=26)
+    plt.title('Datapoints with mismatched detections')#, fontsize=30)
     plt.grid(True)
-
+    
+    # Increase tick parameters
+    plt.tick_params(axis='both', which='major')#, labelsize=20)
 
     # Save the plot
     date_str = end_time.strftime('%Y_%m_%d')
