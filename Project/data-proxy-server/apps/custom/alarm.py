@@ -67,11 +67,20 @@ class AlarmScheduler():
             yaml.dump({'devices': self.registered_devices}, file)
 
     def trigger_alarm(self, device_id, alarm):
-        print(f'Alarm triggered for device {device_id}: {alarm}')
+        
+        print(f'Checking if sleepig for device {device_id}...')
         
         data = {
             'device_id': device_id
         }
+        
+        response = requests.post(self.analysis_server_url + "/analyze/sleeping", data=data)
+        
+        if response.status_code == 200 and response.json()['sleeping'] == False: 
+            print(f'Device {device_id} is not sleeping, not triggering alarm')
+            return
+        
+        print(f'Alarm triggered for device {device_id}: {alarm}')
 
         requests.post("http://127.0.0.1:5000/api/trigger_alarm", data=data)
         
