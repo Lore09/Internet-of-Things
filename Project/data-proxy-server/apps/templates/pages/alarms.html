@@ -42,11 +42,103 @@
                                         <h4 class="mb-0">{{ alarm.time }}</h5>
                                     </div>
                                     <div class="col-md-2">
+
+                                        {% if 'date' in alarm %}
                                         <h4 class="mb-0">{{ alarm.date }}</h4>
+                                        {% else %}
+                                        <h4 class="mb-0">Every week</h4>
+                                        {% endif %}
+
                                     </div>
-                                    <div class="col-md-2">
-                                        <h4 class="mb-0">{{ alarm.days }}</h4>
+
+                                    <div class="col-md-3">
+
+                                        {% if '1' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-m fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-m fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
+                                        {% if '2' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-t fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-t fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
+                                        {% if '3' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-w fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-w fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
+                                        {% if '4' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-t fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-t fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
+                                        {% if '5' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-f fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-f fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
+                                        {% if '6' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-s fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-s fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
+                                        {% if '7' in alarm.days %}
+                                        <span class="fa-stack">
+                                            <i class="fa-solid fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-s fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                        {% else %}
+                                        <span class="fa-stack">
+                                            <i class="fa-regular fa-circle fa-stack-2x"></i>
+                                            <i class="fa-solid fa-s fa-stack-1x"></i>
+                                        </span>
+                                        {% endif %}
+
                                     </div>
+
                                     <div class="col-md-2">
                                         <form action="{{ url_for('home_blueprint.remove_alarm') }}" method="POST">
                                             <input type="hidden" name="device_id" value="{{ x.device_id }}">
@@ -61,7 +153,7 @@
                                 </div>
                             </li>
                             {% endfor %}
-                            
+
                         </ul>
                     </div>
                 </div>
