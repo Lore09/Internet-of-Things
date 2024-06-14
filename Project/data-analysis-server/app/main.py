@@ -17,8 +17,8 @@ InfluxDB = create_influxDB_client()
 names = define_names()
 weight_data_manager = WeightDataManager("data/weights.json")
 
-pillow_weight   = 4  # Example weight of the pillow
-head_weight     = 10    # Example weight of the head
+# pillow_weight   = 4  # Example weight of the pillow
+# head_weight     = 10    # Example weight of the head
 
 # compute the sleep time for each day
 device_names = fetch_devices(names)
@@ -27,11 +27,17 @@ for device in device_names:
     data = weight_data_manager.get_device_data(device)
     if data is None:
         # do the setup process
+        print(f"Setup of device {device}")
         pillow_weight, head_weight = setup_device(InfluxDB, names, device)
         device_data = {"pillow_weight": pillow_weight, "head_weight": head_weight}
         weight_data_manager.update_device_data(device, device_data)
+    else:
+        pillow_weight   = data['pillow_weight']
+        head_weight     = data['head_weight']
 
-    hours_of_sleep_per_day = compute_sleep_time_for_each_day(InfluxDB, names, device, pillow_weight, head_weight)
+    print(f"Computing hour of sleep from {device}")
+    # hours_of_sleep_per_day = compute_sleep_time_for_each_day(InfluxDB, names, device, pillow_weight, head_weight)
+    hours_of_sleep_per_day = compute_sleep_time_for_remaining_days(InfluxDB, names, device, pillow_weight, head_weight)
 
 
 @app.get("/")
@@ -42,6 +48,9 @@ async def root():
 
 @app.get("/analyze/compute_sleep_time_for_each_day")
 async def get_sleep_time_for_each_day(device_id):
+    data = weight_data_manager.get_device_data(device)
+    pillow_weight   = data['pillow_weight']
+    head_weight     = data['head_weight']
     new_hours_of_sleep_per_day = compute_sleep_time_for_remaining_days(InfluxDB, names, device_id, pillow_weight, head_weight)
     return new_hours_of_sleep_per_day
 
@@ -52,6 +61,9 @@ async def check_resleep(device_id):
     function that create a thread that check 
     every 5 minutes if the person woke up
     """
+    data = weight_data_manager.get_device_data(device)
+    pillow_weight   = data['pillow_weight']
+    head_weight     = data['head_weight']
     create_thread_until_woke_up(InfluxDB, names, device_id, pillow_weight, head_weight, device_id)
 
     return {"message": "Checking if the person woke up every 5 minutes"}
@@ -59,6 +71,9 @@ async def check_resleep(device_id):
 
 @app.post("/analyze/sleeping")
 async def get_bed_presence(device_id):
+    data = weight_data_manager.get_device_data(device)
+    pillow_weight   = data['pillow_weight']
+    head_weight     = data['head_weight']
     sleeping = check_bed_presence(InfluxDB, names, device_id, pillow_weight, head_weight, device_id)
     return JSONResponse(content={"sleeping": sleeping})
 

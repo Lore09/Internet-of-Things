@@ -19,7 +19,7 @@ def get_resleep_minutes(InfluxDB, names, client_id, pillow_weight, head_weight, 
     # read data
     df_pressure_data = read_data_with_time_period(InfluxDB, names, client_id, start_time)
 
-    sleep_duration, sleep_periods = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
+    sleep_duration, sleep_periods, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
                                                                 min_sleep_duration_minutes=0, time_unit='m')
 
     return sleep_duration
@@ -30,11 +30,12 @@ def stop_alarm_if_awake(InfluxDB, names, client_id, pillow_weight, head_weight, 
         time.sleep(5)
         # check if sleep
         last_10_Sec = read_data_with_time_period(InfluxDB, names, client_id, "-10s")
-        sleep_duration, sleep_periods = detect_sleep_periods(last_10_Sec, names, pillow_weight, head_weight, \
+        sleep_duration, sleep_periods, _ = detect_sleep_periods(last_10_Sec, names, pillow_weight, head_weight, \
                                                                     min_sleep_duration_minutes=0, time_unit='s')
         
         if sleep_duration < 4.0:
             requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id), headers=headers)
+            print("Alarm stopped")
             return
 
 def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight, device_id, how_many_minutes=5):
@@ -61,6 +62,7 @@ def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight,
         else:
             # otherwise trigger alarm again
             requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id), headers=headers)
+            print("Alarm triggered again")
             stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id)
          
     # change the sampling rate to the defualt value
@@ -75,6 +77,7 @@ def create_thread_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_
                                                                             pillow_weight, head_weight, device_id))
     # Start the thread
     execution_thread.start()
+    print("Thread execution started")
 
 
 def check_bed_presence(InfluxDB, names, client_id, pillow_weight, head_weight, device_id):
@@ -82,7 +85,7 @@ def check_bed_presence(InfluxDB, names, client_id, pillow_weight, head_weight, d
     df_pressure_data = read_data_with_time_period(InfluxDB, names, client_id, "-2m")
 
     # get the sleeping seconds detected in the time period 
-    sleep_duration, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
+    sleep_duration, _, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
                                 min_sleep_duration_minutes=0, time_unit='s')
 
     if sleep_duration > 30:

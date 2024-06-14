@@ -1,5 +1,6 @@
 from analyze.read_from_db import read_first_value, read_last_value
 from analyze.read_from_db import read_data_with_time_period
+from analyze.compute_accuracy import compute_metrics_in_detecting_presence
 from datetime import datetime
 import pandas as pd
 
@@ -17,10 +18,13 @@ def from_df_to_dict(names, df):
         raise ValueError("DataFrame must contain 'date' and 'hours' columns")
 
     # convert the accuracy into integer such that it is JSON compliant
-    df[names.df_sleep_hours_accuracy] = df[names.df_sleep_hours_accuracy].astype(int)
+    df[names.df_sleep_hours_accuracy]   = (df[names.df_sleep_hours_accuracy]*100).astype(int)
+    df["precision"]                     = (df["precision"]*100).astype(int)
+    df["recall"]                        = (df["recall"]*100).astype(int)
+    df["f1"]                            = (df["f1"]*100).astype(int)
 
     # Convert the DataFrame to a dictionary
-    result_dict = df.set_index(names.df_sleep_hours_date)[[names.df_sleep_hours_h, names.df_sleep_hours_accuracy]].to_dict()
+    result_dict = df.set_index(names.df_sleep_hours_date)[[names.df_sleep_hours_h, names.df_sleep_hours_accuracy, "precision", "recall", "f1"]].to_dict()
 
     return result_dict
 
@@ -31,28 +35,28 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
     Detects the starting and ending points of multiple sleep periods and computes the total number of hours of sleep.
     
     Parameters:
-    pressure_data (pd.DataFrame): DataFrame containing the pressure sensor data with a datetime index.
-    pillow_weight (int): Weight of the pillow.
-    head_weight (int): Weight of the head.
-    threshold_factor (float): Factor to adjust the threshold for detecting head on pillow. Default is 0.5, i.e. it is the mean between the two weights.
-    min_sleep_duration_minutes (int): Minimum duration of a sleep period to be considered valid, in minutes. Default is 10 minutes.
+    - pressure_data: dataframe containing the pressure sensor data
+    - pillow_weight: the value returned by the sensor with only the pillow.
+    - head_weight: the value returned by the sensor with only the head
+    - threshold_factor: factor to adjust the threshold for detecting head on pillow. Default is 0.5, i.e. it is the mean between the two weights
+    - min_sleep_duration_minutes: minimum duration of a sleep period to be considered valid, in minutes
+    - time_unit: string to determine the time unit of total_sleep_duration. Possibilities: 'h', 'm', 's'
     
     Returns:
-    float: Total number of hours of sleep.
-    list: List of tuples with start and end timestamps of each sleep period.
+    total number of hours of sleep.
+    list of tuples with start and end timestamps of each sleep period.
     """
 
     pressure_column = names.df_pressure_value
     time_column = names.df_time
     
-    # Calculate the threshold for detecting head on pillow
-    # threshold = pillow_weight + threshold_factor * head_weight
+    # calculate the threshold for detecting head on pillow
     threshold = (pillow_weight + head_weight) * threshold_factor
     
-    # Identify periods when pressure exceeds the threshold
+    # identify periods when pressure exceeds the threshold
     pressure_data['sleep'] = pressure_data[pressure_column] > threshold
     
-    # Find the start and end points of each sleep period
+    # find the start and end points of each sleep period
     sleep_periods = []
     is_sleeping = False
     sleep_start = None
@@ -62,21 +66,30 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
         if row['sleep'] and not is_sleeping:
             sleep_start = timestamp
             is_sleeping = True
+            idx_start_sleep_period = idx
         elif not row['sleep'] and is_sleeping:
             sleep_end = timestamp
             sleep_duration = (sleep_end - sleep_start).total_seconds()
             if sleep_duration >= min_sleep_duration_minutes:
                 sleep_periods.append((sleep_start, sleep_end))
+            else:
+                # modify the row['sleep'] such that
+                # they are not considered as sleeping datapoints
+                pressure_data.loc[idx_start_sleep_period:idx, 'sleep'] = False
             is_sleeping = False
     
-    # If the last period is still sleeping at the end of the data
+    # if the last period is still sleeping at the end of the data
     if is_sleeping:
         sleep_end = pressure_data.iloc[-1][time_column]
         sleep_duration = (sleep_end - sleep_start).total_seconds()
         if sleep_duration >= min_sleep_duration_minutes:
             sleep_periods.append((sleep_start, sleep_end))
+        else:
+            # modify the row['sleep'] such that
+            # they are not considered as sleeping datapoints
+            pressure_data.loc[idx_start_sleep_period:idx, 'sleep'] = False
     
-    # Calculate the total sleep duration in hours
+    # calculate the total sleep duration in hours
     total_sleep_duration = sum((end - start).total_seconds() for start, end in sleep_periods)
 
 
@@ -90,48 +103,20 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
         # in seconds
         pass
     
-    return total_sleep_duration, sleep_periods
+    return total_sleep_duration, sleep_periods, pressure_data
 
-
-
-def compute_accuracy_in_detecting_presence(sleep_periods):
-    
-    if len(sleep_periods) > 0:
-        # extract the start of the first sleep period
-        start_sleep = sleep_periods[0][0]
-        
-        # detect the last sleeping period before 12 a.m.
-        last_sleeping_period_idx = 0
-
-        # print("sleep_periods: ", len(sleep_periods))
-        for i in range(len(sleep_periods)):
-            if sleep_periods[i][1].hour < 12:
-                last_sleeping_period_idx = i
-
-        end_sleep = sleep_periods[last_sleeping_period_idx][1]
-
-        # compute the real sleep duration
-        real_sleep_duration = (end_sleep - start_sleep).total_seconds()
-        # compute the recorded sleep duration
-        recorded_sleep_duration = sum((end - start).total_seconds() for start, end in sleep_periods[:last_sleeping_period_idx+1])
-
-        accuracy = recorded_sleep_duration * 100 / real_sleep_duration
-
-        return accuracy
-    
-    else:
-        return 0
 
 
 def compute_sleep_time(InfluxDB, names, client_id, pillow_weight:int, head_weight:int, date, starting_sleep_hour):
     """
     This function will compute the hours of sleep given
-    - weight0: the value returned by the sensor with only the pillow
-    - weight1: the value returned by the sensor with the head too
+    - Object to connect to InfluxDB
+    - Object that contains variables
+    - the name of the device
+    - pillow_weight: the value returned by the sensor with only the pillow
+    - head_weight: the value returned by the sensor with the head too
     - the date
     - the hour from which the 24 hours must start
-    - the name of the dataframe column containing the pressure sensor values
-    - the name of the dataframe column containing the time value
     """
 
     # create the datetime object of the previous day at the correct hour
@@ -143,11 +128,12 @@ def compute_sleep_time(InfluxDB, names, client_id, pillow_weight:int, head_weigh
 
     df = read_data_with_time_period(InfluxDB, names, client_id, start_time, end_time)
 
-    total_sleep_duration, sleep_periods = detect_sleep_periods(df, names, pillow_weight, head_weight)
+    total_sleep_duration, sleep_periods, pressure_data = detect_sleep_periods(df, names, pillow_weight, head_weight)
 
-    accuracy = compute_accuracy_in_detecting_presence(sleep_periods)
+    accuracy, precision, recall, f1 = compute_metrics_in_detecting_presence(names, sleep_periods, pressure_data, end_time)
+    metrics = (accuracy, precision, recall, f1)
 
-    return end_time, total_sleep_duration, accuracy
+    return end_time, total_sleep_duration, metrics
 
 
 
@@ -161,9 +147,9 @@ def loop_over_dates(InfluxDB, names, client_id, start_date, end_date, pillow_wei
     # Iterate over the dates and print datetime objects for each date
     for date in date_iterator:
     
-        starting_time_period, hours_of_sleep, accuracy = compute_sleep_time(InfluxDB, names, client_id, pillow_weight, head_weight, date, starting_sleep_hour)
-        
-        hours_of_sleep_per_day.append((starting_time_period.date(), hours_of_sleep, accuracy))
+        starting_time_period, hours_of_sleep, metrics = compute_sleep_time(InfluxDB, names, client_id, pillow_weight, head_weight, date, starting_sleep_hour)
+        accuracy, precision, recall, f1 = metrics
+        hours_of_sleep_per_day.append((starting_time_period.date(), hours_of_sleep, accuracy, precision, recall, f1))
     
     return hours_of_sleep_per_day
 
@@ -207,7 +193,7 @@ def compute_sleep_time_for_each_day(InfluxDB, names, client_id, pillow_weight:in
     hours_of_sleep_per_day = loop_over_dates(InfluxDB, names, client_id, start_date.date(), end_date.date(), pillow_weight, head_weight, starting_sleep_hour)
 
     # saving the result of the computation to avoid re computing it again
-    columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h, names.df_sleep_hours_accuracy]
+    columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h, names.df_sleep_hours_accuracy, "precision", "recall", "f1"]
     df_hours_of_sleep_per_day = pd.DataFrame(hours_of_sleep_per_day, columns=columns_name)
     df_hours_of_sleep_per_day.to_csv(f"data/{names.sleep_hours_file_name}_{client_id}.csv")
 
@@ -233,7 +219,7 @@ def compute_sleep_time_for_remaining_days(InfluxDB, names, client_id, pillow_wei
         last_date_file = df_hours_of_sleep_per_day.iloc[-1][names.df_sleep_hours_date]
 
         # retrieve the last datapoint in the DB
-        df_last = read_last_value(InfluxDB, names)
+        df_last = read_last_value(InfluxDB, names, client_id)
         # retrieve the time of the last datapoint in the db
         last_time_in_db = df_last.loc[0, names.df_time]
 
@@ -251,7 +237,7 @@ def compute_sleep_time_for_remaining_days(InfluxDB, names, client_id, pillow_wei
         hours_of_sleep_of_remaining_day = loop_over_dates(InfluxDB, names, client_id, last_date_file.date(), last_time_in_db.date(), pillow_weight, head_weight, starting_sleep_hour)
 
         # creating the dataframe
-        columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h, df_sleep_hours_accuracy]
+        columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h, names.df_sleep_hours_accuracy, "precision", "recall", "f1"]
         hours_of_sleep_of_remaining_day = pd.DataFrame(hours_of_sleep_of_remaining_day, columns=columns_name)
 
         old_information_minus_last_day = df_hours_of_sleep_per_day.iloc[:-1]
