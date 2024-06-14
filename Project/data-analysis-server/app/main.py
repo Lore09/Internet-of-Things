@@ -69,7 +69,7 @@ async def check_resleep(device_id):
     return {"message": "Checking if the person woke up every 5 minutes"}
 
 
-@app.post("/analyze/sleeping")
+@app.get("/analyze/sleeping")
 async def get_bed_presence(device_id):
     data = weight_data_manager.get_device_data(device)
     pillow_weight   = data['pillow_weight']

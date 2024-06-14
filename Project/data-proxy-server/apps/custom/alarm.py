@@ -70,11 +70,8 @@ class AlarmScheduler():
         
         print(f'Checking if sleepig for device {device_id}...')
         
-        data = {
-            'device_id': device_id
-        }
         
-        response = requests.post(self.analysis_server_url + "/analyze/sleeping", data=data)
+        response = requests.get(self.analysis_server_url + "/analyze/sleeping?device_id=" + device_id)
         
         if response.status_code == 200 and response.json()['sleeping'] == False: 
             print(f'Device {device_id} is not sleeping, not triggering alarm')
@@ -82,6 +79,9 @@ class AlarmScheduler():
         
         print(f'Alarm triggered for device {device_id}: {alarm}')
 
+        data = {
+            'device_id': device_id
+        }
         requests.post("http://127.0.0.1:5000/api/trigger_alarm", data=data)
         
         requests.get( self.analysis_server_url + "/analyze/check_sleep?device_id=" + device_id )
