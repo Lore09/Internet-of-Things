@@ -7,6 +7,10 @@ from analyze.analyze_sleep import detect_sleep_periods
 import threading
 import requests
 
+headers = {
+    'Content-Type': 'application/x-www-form-urlencoded'
+}
+
 
 def get_resleep_minutes(InfluxDB, names, client_id, pillow_weight, head_weight, how_many_minutes=5):
 
@@ -30,7 +34,7 @@ def stop_alarm_if_awake(InfluxDB, names, client_id, pillow_weight, head_weight, 
                                                                     min_sleep_duration_minutes=0, time_unit='s')
         
         if sleep_duration < 4.0:
-            requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id))
+            requests.post(names.data_proxy_url + "/api/stop_alarm", data=("device_id=" + device_id), headers=headers)
             return
 
 def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight, device_id, how_many_minutes=5):
@@ -56,7 +60,7 @@ def repeat_until_woke_up(InfluxDB, names, client_id, pillow_weight, head_weight,
             woke_up = True
         else:
             # otherwise trigger alarm again
-            requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id))
+            requests.post(names.data_proxy_url + "/api/trigger_alarm", data=("device_id=" + device_id), headers=headers)
             stop_alarm_if_awake(InfluxDB, names, pillow_weight, head_weight, device_id)
          
     # change the sampling rate to the defualt value
