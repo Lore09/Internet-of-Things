@@ -1,0 +1,67 @@
+<!-- [ Sidebar Menu ] start -->
+<nav class="pc-sidebar">
+  <div class="navbar-wrapper">
+    <div class="m-header">
+      <a href="index.html" class="b-brand">
+        <!-- ========   Change your logo from here   ============ -->
+        <img src="{{ url_for('static', filename='assets/images/logo-dark.svg') }}" alt="" class="logo logo-lg" />
+      </a>
+    </div>
+    <div class="navbar-content">
+      <ul class="pc-navbar">
+        <li class="pc-item pc-caption">
+          <label>Dashboard</label>
+          <i class="ti ti-dashboard"></i>
+        </li>
+
+        <li class="pc-item">
+          <a href="/" class="pc-link"><span class="pc-micon"><i class="ti ti-alarm"></i></span><span
+              class="pc-mtext">Alarms</span></a>
+        </li>
+
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.devices') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-section"></i></span><span class="pc-mtext">Devices</span></a>
+        </li>
+
+
+        <li class="pc-item pc-caption">
+          <label>Monitoring</label>
+          <i class="ti ti-apps"></i>
+        </li>
+
+        <li class="pc-item">
+          <a href="{{ url_for('home_blueprint.grafana') }}" class="pc-link"><span class="pc-micon"><i
+                class="ti ti-chart-area-line"></i></span><span class="pc-mtext">Grafana</span></a>
+        </li>
+
+        <li class="pc-item pc-caption">
+          <label>Settings</label>
+          <i class="ti ti-news"></i>
+        </li>
+
+        <li class="pc-item pc-hasmenu">
+          <a href="#!" class="pc-link">
+            <span class="pc-micon"><i class="ti ti-key"></i></span>
+            <span class="pc-mtext">User Pages</span><span class="pc-arrow"><i class="ti ti-chevron-right"></i></span>
+          </a>
+          <ul class="pc-submenu">
+
+            {% if current_user.is_authenticated %}
+            <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.logout') }}">Logout</a>
+            </li>
+            {% else %}
+            <li class="pc-item"><a class="pc-link" href="{{ url_for('authentication_blueprint.login') }}">Login</a></li>
+            <li class="pc-item"><a class="pc-link"
+                href="{{ url_for('authentication_blueprint.register') }}">Register</a></li>
+            {% endif %}
+
+          </ul>
+        </li>
+
+      </ul>
+
+    </div>
+  </div>
+</nav>
+<!-- [ Sidebar Menu ] end -->

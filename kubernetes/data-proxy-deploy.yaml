@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-proxy-pv
+  labels:
+    type: local
+spec:
+  storageClassName: local-path
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/iot"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-proxy-pvc
+  namespace: iot
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-proxy-server
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-proxy-server
+  template:
+    metadata:
+      labels:
+        app: data-proxy-server
+    spec:
+      volumes:
+        - name: data-proxy-volume
+          persistentVolumeClaim:
+            claimName: data-proxy-pvc
+      containers:
+      - name: data-proxy-server
+        image: docker.io/unibo-iot/python-data-proxy-server:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        envFrom:
+          - configMapRef:
+              name: data-proxy-config
+        env:
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: mqtt-username
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: mqtt-password
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: influxdb-token
+        - name: WEATHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: data-proxy-secret
+              key: openweather-api-key
+        volumeMounts:
+        - name: data-proxy-volume
+          mountPath: /app/data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-proxy-service
+  namespace: iot
+  annotations:
+    metallb.universe.tf/allow-shared-ip: iot
+    metallb.universe.tf/ip-allocated-from-pool: first-pool
+spec:
+  selector:
+    app: data-proxy-server
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: LoadBalancer
