@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
@@ -9,6 +11,7 @@ from analyze.analyze_sleep import compute_sleep_time_for_remaining_days
 from analyze.check_resleep import get_resleep_minutes, create_thread_until_woke_up
 from analyze.check_resleep import check_bed_presence
 from analyze.setup_device import setup_device
+from analyze.data_forecasting import forecast_data
 from app.__init__ import create_influxDB_client, define_names
 
 
@@ -84,3 +87,15 @@ async def get_weights(device_id):
     pillow_weight, head_weight = setup_device(device_id)
     return {"pillow_weight": pillow_weight, "head_weight": head_weight}
 
+
+@app.get("/analyze/forecast")
+async def forecast(device_id, year, month, day):
+    try:
+        year = int(year)
+        month = int(month)
+        day = int(day)
+    except:
+        return {"message": "year, month and day must be integer"}
+    day = datetime(year, month, day, 0, 0, 0)
+    forecast_data(InfluxDB, names, device_id, day)
+    return {"message": "Done!"}
