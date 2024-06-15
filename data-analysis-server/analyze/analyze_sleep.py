@@ -195,7 +195,7 @@ def compute_sleep_time_for_each_day(InfluxDB, names, client_id, pillow_weight:in
     # saving the result of the computation to avoid re computing it again
     columns_name = [names.df_sleep_hours_date, names.df_sleep_hours_h, names.df_sleep_hours_accuracy, "precision", "recall", "f1"]
     df_hours_of_sleep_per_day = pd.DataFrame(hours_of_sleep_per_day, columns=columns_name)
-    df_hours_of_sleep_per_day.to_csv(f"data/{names.sleep_hours_file_name}_{client_id}.csv")
+    df_hours_of_sleep_per_day.to_csv(f"data/{names.sleep_hours_file_name}_{client_id}.csv", index=False)
 
     print("Computed sleep time for each day")
     return hours_of_sleep_per_day
@@ -243,7 +243,7 @@ def compute_sleep_time_for_remaining_days(InfluxDB, names, client_id, pillow_wei
         old_information_minus_last_day = df_hours_of_sleep_per_day.iloc[:-1]
         updated_df = pd.concat([old_information_minus_last_day, hours_of_sleep_of_remaining_day], ignore_index=True)
 
-        updated_df.to_csv(f"data/{names.sleep_hours_file_name}_{client_id}.csv")
+        updated_df.to_csv(f"data/{names.sleep_hours_file_name}_{client_id}.csv", index=False)
         print("csv file updated")
 
     # transform the dataframe to dict
