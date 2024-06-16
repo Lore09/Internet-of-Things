@@ -1,6 +1,7 @@
 from analyze.read_from_db import read_first_value, read_last_value
 from analyze.read_from_db import read_data_with_time_period
 from analyze.compute_accuracy import compute_metrics_in_detecting_presence
+from objects.weight_data_manage import WeightDataManager
 from datetime import datetime
 import pandas as pd
 
@@ -30,7 +31,7 @@ def from_df_to_dict(names, df):
 
 
 
-def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, threshold_factor=0.6, min_sleep_duration_minutes=10, time_unit='h'):
+def detect_sleep_periods(pressure_data, names, device_id, pillow_weight, head_weight, min_sleep_duration_minutes=10, time_unit='h'):
     """
     Detects the starting and ending points of multiple sleep periods and computes the total number of hours of sleep.
     
@@ -38,7 +39,6 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
     - pressure_data: dataframe containing the pressure sensor data
     - pillow_weight: the value returned by the sensor with only the pillow.
     - head_weight: the value returned by the sensor with only the head
-    - threshold_factor: factor to adjust the threshold for detecting head on pillow.
     - min_sleep_duration_minutes: minimum duration of a sleep period to be considered valid, in minutes
     - time_unit: string to determine the time unit of total_sleep_duration. Possibilities: 'h', 'm', 's'
     
@@ -51,7 +51,9 @@ def detect_sleep_periods(pressure_data, names, pillow_weight, head_weight, thres
     time_column = names.df_time
     
     # calculate the threshold for detecting head on pillow
-    threshold = (pillow_weight + head_weight) * threshold_factor
+    # threshold = (pillow_weight + head_weight) * threshold_factor
+    weight_data_manager = WeightDataManager("data/weights.json")
+    threshold = weight_data_manager.get_device_data(device_id)["threshold_weight"]
     
     # identify periods when pressure exceeds the threshold
     pressure_data['sleep'] = pressure_data[pressure_column] > threshold
@@ -128,7 +130,7 @@ def compute_sleep_time(InfluxDB, names, client_id, pillow_weight:int, head_weigh
 
     df = read_data_with_time_period(InfluxDB, names, client_id, start_time, end_time)
 
-    total_sleep_duration, sleep_periods, pressure_data = detect_sleep_periods(df, names, pillow_weight, head_weight)
+    total_sleep_duration, sleep_periods, pressure_data = detect_sleep_periods(df, names, client_id, pillow_weight, head_weight)
 
     accuracy, precision, recall, f1 = compute_metrics_in_detecting_presence(names, sleep_periods, pressure_data, end_time)
     metrics = (accuracy, precision, recall, f1)

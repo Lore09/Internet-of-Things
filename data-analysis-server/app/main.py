@@ -32,7 +32,8 @@ for device in device_names:
         # do the setup process
         print(f"Setup of device {device}")
         pillow_weight, head_weight = setup_device(InfluxDB, names, device)
-        device_data = {"pillow_weight": pillow_weight, "head_weight": head_weight}
+        threshold_weight = (pillow_weight + head_weight) / 2
+        device_data = {"pillow_weight": pillow_weight, "head_weight": head_weight, "threshold_weight": threshold_weight}
         weight_data_manager.update_device_data(device, device_data)
     else:
         pillow_weight   = data['pillow_weight']
@@ -81,11 +82,34 @@ async def get_bed_presence(device_id):
     return JSONResponse(content={"sleeping": sleeping})
 
 
+@app.get("/analyze/calibration")
+async def get_weights(device_id):
+    pillow_weight, head_weight = setup_device(device_id)
+    threshold_weight = (pillow_weight + head_weight) / 2
+    device_data = {"pillow_weight": pillow_weight, "head_weight": head_weight, "threshold_weight": threshold_weight}
+    weight_data_manager.update_device_data(device_id, device_data)
+    return device_data
+
 
 @app.get("/analyze/get_weights")
 async def get_weights(device_id):
-    pillow_weight, head_weight = setup_device(device_id)
-    return {"pillow_weight": pillow_weight, "head_weight": head_weight}
+    data = weight_data_manager.get_device_data(device)
+    return data
+
+
+@app.get("/analyze/set_threshold")
+async def get_weights(device_id, new_threshold):
+    """
+    Method to change the threshold used to detect the presence of a person.
+    The default value is the mean between the pillow and head weight
+    """
+    try:
+        new_threshold = int(new_threshold)
+    except:
+        return {"message": "the new_threshold must be an integer"}
+    weight_data_manager.change_threshold(device_id, new_threshold)
+    data = weight_data_manager.get_device_data(device)
+    return data
 
 
 @app.get("/analyze/forecast")

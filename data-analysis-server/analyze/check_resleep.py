@@ -19,7 +19,7 @@ def get_resleep_minutes(InfluxDB, names, client_id, pillow_weight, head_weight, 
     # read data
     df_pressure_data = read_data_with_time_period(InfluxDB, names, client_id, start_time)
 
-    sleep_duration, sleep_periods, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
+    sleep_duration, sleep_periods, _ = detect_sleep_periods(df_pressure_data, names, client_id, pillow_weight, head_weight, \
                                                                 min_sleep_duration_minutes=0, time_unit='m')
 
     return sleep_duration
@@ -30,7 +30,7 @@ def stop_alarm_if_awake(InfluxDB, names, client_id, pillow_weight, head_weight, 
         time.sleep(5)
         # check if sleep
         last_10_Sec = read_data_with_time_period(InfluxDB, names, client_id, "-10s")
-        sleep_duration, sleep_periods, _ = detect_sleep_periods(last_10_Sec, names, pillow_weight, head_weight, \
+        sleep_duration, sleep_periods, _ = detect_sleep_periods(last_10_Sec, names, client_id, pillow_weight, head_weight, \
                                                                     min_sleep_duration_minutes=0, time_unit='s')
         
         if sleep_duration < 4.0:
@@ -85,7 +85,7 @@ def check_bed_presence(InfluxDB, names, client_id, pillow_weight, head_weight, d
     df_pressure_data = read_data_with_time_period(InfluxDB, names, client_id, "-2m")
 
     # get the sleeping seconds detected in the time period 
-    sleep_duration, _, _ = detect_sleep_periods(df_pressure_data, names, pillow_weight, head_weight, \
+    sleep_duration, _, _ = detect_sleep_periods(df_pressure_data, names, client_id, pillow_weight, head_weight, \
                                 min_sleep_duration_minutes=0, time_unit='s')
 
     if sleep_duration > 50:

@@ -26,3 +26,7 @@ class WeightDataManager:
         data[device_id] = device_data
         self.save_data(data)
         
+    def change_threshold(self, device_id, new_threshold):
+        data = self.load_data()
+        data[device_id]['threshold_weight'] = new_threshold
+        self.save_data(data)
