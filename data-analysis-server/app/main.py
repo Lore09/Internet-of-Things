@@ -84,7 +84,7 @@ async def get_bed_presence(device_id):
 
 @app.get("/analyze/calibration")
 async def get_weights(device_id):
-    pillow_weight, head_weight = setup_device(device_id)
+    pillow_weight, head_weight = setup_device(InfluxDB=InfluxDB, names=names, device_id=device_id)
     threshold_weight = (pillow_weight + head_weight) / 2
     device_data = {"pillow_weight": pillow_weight, "head_weight": head_weight, "threshold_weight": threshold_weight}
     weight_data_manager.update_device_data(device_id, device_data)
