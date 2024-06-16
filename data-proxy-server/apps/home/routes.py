@@ -5,6 +5,7 @@ from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
+import requests
 
 @blueprint.route('/index')
 @login_required
@@ -169,6 +170,19 @@ def update_sampling_rate():
 
     return redirect(url_for('home_blueprint.devices')) 
 
+
+@blueprint.route('/api/threshold', methods=['POST'])
+def update_threshold():
+    data = request.form.to_dict()
+
+    device_id = data['device_id']
+    threshold = data['threshold']
+    
+    requests.get( alarm_scheduler.analysis_server_url + "/analyze/set_threshold", params={'device_id': device_id, 'new_threshold': threshold})
+
+    return redirect(url_for('home_blueprint.devices')) 
+
+
 @blueprint.route('/api/city', methods=['POST'])
 def update_city():
     data = request.form.to_dict()
@@ -228,6 +242,12 @@ def stop_alarm():
         return make_response('OK', 200)
     else:
         return redirect(url_for('home_blueprint.devices'))
+    
+@blueprint.route('/api/start_calibration', methods=['POST'])
+def start_calibration():
+    device_id = request.form.to_dict()['device_id']
+    
+    requests.get( alarm_scheduler.analysis_server_url + "/analyze/calibration", params={'device_id': device_id})
 
 @blueprint.route('/api/sensor_data', methods=['POST'])
 def get_sensor_data():
