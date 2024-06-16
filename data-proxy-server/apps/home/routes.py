@@ -248,6 +248,8 @@ def start_calibration():
     device_id = request.form.to_dict()['device_id']
     
     requests.get( alarm_scheduler.analysis_server_url + "/analyze/calibration", params={'device_id': device_id})
+    
+    return redirect(url_for('home_blueprint.devices'))
 
 @blueprint.route('/api/sensor_data', methods=['POST'])
 def get_sensor_data():
