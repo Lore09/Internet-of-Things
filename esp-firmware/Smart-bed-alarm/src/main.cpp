@@ -1,8 +1,19 @@
+//#define DEVICE_ESP32
+#define DEVICE_ESP8266
+
+#ifdef DEVICE_ESP32
+#include <WiFi.h>
+#include <HTTPClient.h>
+#endif
+
+#ifdef DEVICE_ESP8266
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#endif
+
 #include <PubSubClient.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include <ESP8266HTTPClient.h>
 
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorMP3.h"
@@ -15,8 +26,8 @@
 //#include "dragonspiral_tower.h"
 
 // Replace with your network credentials
-const char* ssid = "VodafoneArmata Edition";          // WiFi SSID
-const char* ssid_password = "MassoneTerrone666!";     // WiFi password
+char* ssid = "Onde nocive";          // WiFi SSID
+char* ssid_password = "esp826sexo";     // WiFi password
 
 // MQTT settings
 const char* mqtt_server = "rebus.ninja";              // MQTT server 
